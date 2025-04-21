@@ -1,0 +1,63 @@
+
+import streamlit as st
+import pandas as pd
+from datetime import date
+import os
+
+canvas_qs = {
+    "Motivation": [
+        "What still excites or matters to me?",
+        "If I could only keep one reason to continue, what would it be?",
+    ],
+    "Energy & Resilience": [
+        "How am I feeling lately - physically, emotionally?",
+        "What restores me? What drains me?",
+    ],
+    "Support Systems": [
+        "Who's truly in my corner right now?",
+        "Where can I get the help I'm missing?",
+    ],
+    "Growth Mindset": [
+        "What's something new I've learned recently?",
+        "Where am I avoiding challenge or feedback?",
+    ],
+    "Vision": [
+        "What would 'further' look like?",
+        "Even if I don't know the final goal, what feels like the next right step?",
+    ]
+}
+
+def ask_questions():
+    answers = {}
+    for section, questions in canvas_qs.items():
+        st.markdown(f"#### {section}")
+        answers[section] = [st.text_area(q, key=q) for q in questions]
+    return answers
+
+def rate_scorecard():
+    score = 0
+    st.write("Rate each category from 1 (very low) to 5 (very strong)")
+    ratings = {}
+    for category in canvas_qs:
+        rating = st.slider(f"{category} Rating", 1, 5, 3, key=category)
+        ratings[category] = rating
+        score += rating
+    return score
+
+def save_checkin(user_email, canvas_answers, score):
+    entry = {
+        "date": date.today(),
+        "user": user_email,
+        "score": score
+    }
+    for section, answers in canvas_answers.items():
+        entry[f"{section} Q1"] = answers[0]
+        entry[f"{section} Q2"] = answers[1]
+
+    df = pd.DataFrame([entry])
+    os.makedirs("data", exist_ok=True)
+    file_path = "data/checkins.csv"
+    if os.path.exists(file_path):
+        old = pd.read_csv(file_path)
+        df = pd.concat([old, df], ignore_index=True)
+    df.to_csv(file_path, index=False)
