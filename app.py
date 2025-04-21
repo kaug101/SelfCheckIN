@@ -2,7 +2,7 @@
 import streamlit as st
 from datetime import date
 from auth import google_login
-from checkin_utils import ask_questions, rate_scorecard, save_checkin
+from checkin_utils import ask_questions, generate_score, save_checkin
 
 st.set_page_config(page_title="Daily Fuel Check", layout="centered")
 
@@ -15,11 +15,11 @@ st.title("🛠️ Daily Fuel Check-In")
 st.subheader("📝 Fuel Canvas")
 canvas_answers = ask_questions()
 
-st.subheader("📊 Fuel Scorecard")
-score = rate_scorecard()
+if st.button("Submit Check-In"):
+    st.info("🔄 Calculating your dynamic score using AI...")
+    score = generate_score(canvas_answers)
 
-if score:
-    st.success(f"Your total score is **{score}/25**")
+    st.success(f"Your total score is **{score}/25** (AI-assessed)")
 
     if score >= 20:
         st.write("✅ **Strong fuel - full tank**")

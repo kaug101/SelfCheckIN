@@ -3,6 +3,34 @@ import streamlit as st
 import pandas as pd
 from datetime import date
 import os
+import openai
+
+# Simulated LLM function to assess answers
+def generate_score(canvas_answers):
+    # In a real app, you'd call OpenAI API like this:
+    # prompt = create_prompt(canvas_answers)
+    # response = openai.ChatCompletion.create(
+    #     model="gpt-4",
+    #     messages=[{"role": "user", "content": prompt}]
+    # )
+    # return extract_score(response)
+
+    # Placeholder: use simple heuristic for now
+    score = 0
+    for answers in canvas_answers.values():
+        for ans in answers:
+            length = len(ans.strip())
+            if length > 100:
+                score += 5
+            elif length > 50:
+                score += 4
+            elif length > 20:
+                score += 3
+            elif length > 5:
+                score += 2
+            else:
+                score += 1
+    return min(score, 25)
 
 canvas_qs = {
     "Motivation": [
@@ -33,16 +61,6 @@ def ask_questions():
         st.markdown(f"#### {section}")
         answers[section] = [st.text_area(q, key=q) for q in questions]
     return answers
-
-def rate_scorecard():
-    score = 0
-    st.write("Rate each category from 1 (very low) to 5 (very strong)")
-    ratings = {}
-    for category in canvas_qs:
-        rating = st.slider(f"{category} Rating", 1, 5, 3, key=category)
-        ratings[category] = rating
-        score += rating
-    return score
 
 def save_checkin(user_email, canvas_answers, score):
     entry = {
