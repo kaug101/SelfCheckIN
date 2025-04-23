@@ -5,17 +5,8 @@ from datetime import date
 import os
 import openai
 
-# Simulated LLM function to assess answers
 def generate_score(canvas_answers):
-    # In a real app, you'd call OpenAI API like this:
-    # prompt = create_prompt(canvas_answers)
-    # response = openai.ChatCompletion.create(
-    #     model="gpt-4",
-    #     messages=[{"role": "user", "content": prompt}]
-    # )
-    # return extract_score(response)
-
-    # Placeholder: use simple heuristic for now
+    # Real API call would go here
     score = 0
     for answers in canvas_answers.values():
         for ans in answers:
@@ -79,3 +70,10 @@ def save_checkin(user_email, canvas_answers, score):
         old = pd.read_csv(file_path)
         df = pd.concat([old, df], ignore_index=True)
     df.to_csv(file_path, index=False)
+
+def load_user_checkins(user_email):
+    file_path = "data/checkins.csv"
+    if not os.path.exists(file_path):
+        return pd.DataFrame()
+    df = pd.read_csv(file_path)
+    return df[df['user'] == user_email]
