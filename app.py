@@ -2,7 +2,7 @@
 import streamlit as st
 from datetime import date
 from auth import google_login
-from checkin_utils import ask_questions, generate_score, save_checkin, load_user_checkins
+from checkin_utils import ask_questions, generate_score, save_checkin
 
 st.set_page_config(page_title="Daily Fuel Check", layout="centered")
 
@@ -32,11 +32,4 @@ if st.button("Submit Check-In"):
 
     if st.button("Save Check-In"):
         save_checkin(user_email, canvas_answers, score)
-        st.success("✅ Check-in saved!")
-
-st.subheader("📅 Your Past Check-Ins")
-checkins_df = load_user_checkins(user_email)
-if checkins_df.empty:
-    st.info("No previous check-ins found.")
-else:
-    st.dataframe(checkins_df.sort_values(by='date', ascending=False), use_container_width=True)
+        st.success("✅ Check-in saved to Google Sheets!")
