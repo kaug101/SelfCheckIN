@@ -25,5 +25,13 @@ def get_worksheet():
 
 def append_checkin_to_sheet(data_dict):
     worksheet = get_worksheet()
-    row = [data_dict.get(key, "") for key in worksheet.row_values(1)]
-    worksheet.append_row(row)
+    headers = worksheet.row_values(1)
+    print("Headers in sheet:", headers)
+    print("Data dict keys:", list(data_dict.keys()))
+    row = [data_dict.get(key, "") for key in headers]
+    try:
+        worksheet.append_row(row)
+    except Exception as e:
+        st.error(f"❌ Failed to write to Google Sheets: {e}")
+
+
