@@ -1,7 +1,7 @@
+
 streamlit
 pandas
 openai
 gspread
 oauth2client
-pyrebase-auth
-
+requests

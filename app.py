@@ -1,12 +1,12 @@
 
 import streamlit as st
 from datetime import date
-from auth import google_login
+from auth import firebase_login
 from checkin_utils import ask_questions, generate_score, save_checkin
 
 st.set_page_config(page_title="Daily Fuel Check", layout="centered")
 
-user_email = google_login()
+user_email = firebase_login()
 if not user_email:
     st.stop()
 

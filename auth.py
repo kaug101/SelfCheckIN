@@ -1,33 +1,33 @@
+
 import streamlit as st
-import pyrebase
+import requests
 
-firebase_config = st.secrets["FIREBASE_CONFIG"]
+FIREBASE_API_KEY = st.secrets["FIREBASE_CONFIG"]["apiKey"]
 
-firebase = pyrebase.initialize_app(firebase_config)
-auth = firebase.auth()
-
-def google_login():
-    st.markdown("### 🔐 Sign in with your email and password")
+def firebase_login():
+    st.markdown("### 🔐 Firebase Email/Password Login")
 
     email = st.text_input("Email")
     password = st.text_input("Password", type="password")
-    
-    col1, col2 = st.columns(2)
+    action = st.radio("Choose action", ["Login", "Sign Up"])
 
-    if col1.button("Sign In"):
-        try:
-            user = auth.sign_in_with_email_and_password(email, password)
-            st.session_state["user_email"] = email
-            st.success("✅ Logged in successfully!")
-        except Exception as e:
-            st.error(f"Login failed: {e}")
+    if st.button("Submit"):
+        if action == "Login":
+            url = f"https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key={FIREBASE_API_KEY}"
+        else:
+            url = f"https://identitytoolkit.googleapis.com/v1/accounts:signUp?key={FIREBASE_API_KEY}"
 
-    if col2.button("Create Account"):
-        try:
-            user = auth.create_user_with_email_and_password(email, password)
-            st.session_state["user_email"] = email
-            st.success("✅ Account created successfully!")
-        except Exception as e:
-            st.error(f"Account creation failed: {e}")
-    
+        payload = {
+            "email": email,
+            "password": password,
+            "returnSecureToken": True
+        }
+
+        response = requests.post(url, json=payload)
+        if response.status_code == 200:
+            st.session_state["user_email"] = response.json().get("email")
+            st.success(f"✅ {action} successful!")
+        else:
+            st.error(f"{action} failed: {response.json().get('error', {}).get('message')}")
+
     return st.session_state.get("user_email")

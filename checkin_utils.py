@@ -61,7 +61,3 @@ def save_checkin(user_email, canvas_answers, score):
         entry[f"{section} Q2"] = answers[1]
 
     append_checkin_to_sheet(entry)
-
-def load_user_checkins(user_email):
-    st.info("Loading check-in history from Google Sheets is not implemented in this version.")
-    return None
