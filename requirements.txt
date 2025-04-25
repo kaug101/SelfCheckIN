@@ -3,4 +3,5 @@ pandas
 openai
 gspread
 oauth2client
-pyrebase4
+pyrebase-auth
+
