@@ -1,12 +1,16 @@
 import streamlit as st
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
+import base64
+import json
 
 GOOGLE_SHEET_ID = "1-_qYgfLjxnxfwo-sNkkM6xEDWwEAmtizUP0n9aUQS40"
 
 def get_worksheet():
     scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
-    credentials_dict = st.secrets["GCP"]
+    encoded_credentials = st.secrets["GCP"]
+    decoded = base64.b64decode(encoded_credentials).decode("utf-8")
+    credentials_dict = json.loads(decoded)
     creds = service_account.Credentials.from_service_account_info(credentials_dict)
     client = gspread.authorize(creds)
     sheet = client.open_by_key(GOOGLE_SHEET_ID)
