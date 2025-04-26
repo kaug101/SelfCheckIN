@@ -8,7 +8,7 @@ GOOGLE_SHEET_ID = "1-_qYgfLjxnxfwo-sNkkM6xEDWwEAmtizUP0n9aUQS40"
 
 def get_worksheet():
     scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
-    encoded_credentials = st.secrets["GCP"]
+    encoded_credentials = st.secrets["GCP"]["service_account_base64"]
     decoded = base64.b64decode(encoded_credentials).decode("utf-8")
     credentials_dict = json.loads(decoded)
     creds = service_account.Credentials.from_service_account_info(credentials_dict)
