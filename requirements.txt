@@ -5,4 +5,5 @@ openai
 gspread
 oauth2client
 google-auth
-pyrebase4
+requests
+matplotlib

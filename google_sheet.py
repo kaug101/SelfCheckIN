@@ -4,8 +4,9 @@ from google.oauth2 import service_account
 import base64
 import json
 import streamlit as st
+import pandas as pd
 
-GOOGLE_SHEET_ID = "1-_qYgfLjxnxfwo-sNkkM6xEDWwEAmtizUP0n9aUQS40"
+GOOGLE_SHEET_ID = "your_google_sheet_id_here"
 
 def get_worksheet():
     encoded_credentials = st.secrets["GCP"]["service_account_base64"]
@@ -33,3 +34,15 @@ def append_checkin_to_sheet(data_dict):
         import traceback
         st.error("❌ Failed to write to Google Sheets.")
         st.code(traceback.format_exc(), language="python")
+
+def get_all_checkins():
+    try:
+        worksheet = get_worksheet()
+        data = worksheet.get_all_records()
+        df = pd.DataFrame(data)
+        return df
+    except Exception as e:
+        import traceback
+        st.error("❌ Failed to load check-ins from Google Sheets.")
+        st.code(traceback.format_exc(), language="python")
+        return None

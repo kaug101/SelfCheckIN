@@ -1,7 +1,9 @@
 
 import streamlit as st
+import pandas as pd
 from datetime import date
-from google_sheet import append_checkin_to_sheet
+from google_sheet import append_checkin_to_sheet, get_all_checkins
+import matplotlib.pyplot as plt
 
 canvas_qs = {
     "Motivation": [
@@ -61,3 +63,17 @@ def save_checkin(user_email, canvas_answers, score):
         entry[f"{section} Q2"] = answers[1]
 
     append_checkin_to_sheet(entry)
+
+def load_user_checkins(user_email):
+    df = get_all_checkins()
+    if df is not None and not df.empty:
+        user_df = df[df['user'] == user_email]
+        return user_df
+    return None
+
+def show_insights(df):
+    st.dataframe(df.sort_values(by="date", ascending=False), use_container_width=True)
+    if "date" in df and "score" in df:
+        df["date"] = pd.to_datetime(df["date"])
+        df = df.sort_values("date")
+        st.line_chart(df.set_index("date")["score"])
