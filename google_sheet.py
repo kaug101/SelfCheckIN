@@ -11,7 +11,13 @@ def get_worksheet():
     encoded_credentials = st.secrets["GCP"]["service_account_base64"]
     decoded = base64.b64decode(encoded_credentials).decode("utf-8")
     credentials_dict = json.loads(decoded)
-    credentials = service_account.Credentials.from_service_account_info(credentials_dict)
+
+    scope = [
+        "https://www.googleapis.com/auth/spreadsheets",
+        "https://www.googleapis.com/auth/drive"
+    ]
+
+    credentials = service_account.Credentials.from_service_account_info(credentials_dict, scopes=scope)
     client = gspread.authorize(credentials)
     sheet = client.open_by_key(GOOGLE_SHEET_ID)
     return sheet.sheet1
