@@ -6,7 +6,7 @@ import json
 import streamlit as st
 import pandas as pd
 
-GOOGLE_SHEET_ID = "your_google_sheet_id_here"
+GOOGLE_SHEET_ID = "1-_qYgfLjxnxfwo-sNkkM6xEDWwEAmtizUP0n9aUQS40"
 
 def get_worksheet():
     encoded_credentials = st.secrets["GCP"]["service_account_base64"]
