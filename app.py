@@ -1,12 +1,12 @@
 
 import streamlit as st
 from datetime import date
-from auth import firebase_login
+from auth import google_login
 from checkin_utils import ask_questions, generate_score, save_checkin
 
 st.set_page_config(page_title="Daily Fuel Check", layout="centered")
 
-user_email = firebase_login()
+user_email = google_login()
 if not user_email:
     st.stop()
 
@@ -15,12 +15,13 @@ st.title("🛠️ Daily Fuel Check-In")
 st.subheader("📝 Fuel Canvas")
 canvas_answers = ask_questions()
 
-if st.button("Submit Check-In"):
+if st.button("Submit and Save Check-In"):
     st.info("🔄 Calculating your dynamic score using AI...")
+    
     score = generate_score(canvas_answers)
-
-    st.success(f"Your total score is **{score}/25** (AI-assessed)")
-
+    
+    st.success(f"✅ Your total score is **{score}/25** (AI-assessed)")
+    
     if score >= 20:
         st.write("✅ **Strong fuel - full tank**")
     elif score >= 15:
@@ -29,7 +30,11 @@ if st.button("Submit Check-In"):
         st.write("🔻 **Low - time for refueling strategies**")
     else:
         st.write("🚨 **Danger zone - needs support, rest, or reorientation**")
-
-    if st.button("Save Check-In"):
+    
+    try:
         save_checkin(user_email, canvas_answers, score)
-        st.success("✅ Check-in saved to Google Sheets!")
+        st.success("✅ Check-in successfully saved to Google Sheets!")
+    except Exception as e:
+        import traceback
+        st.error(f"❌ Failed to save check-in: {e}")
+        st.code(traceback.format_exc(), language="python")

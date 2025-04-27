@@ -4,4 +4,4 @@ pandas
 openai
 gspread
 oauth2client
-requests
+google-auth
