@@ -59,16 +59,22 @@ def show_insights(df):
         df = df.sort_values("date")
         st.line_chart(df.set_index("date")["score"])
 
-def show_demo_coaching():
-    st.markdown("### Alex (alex@example.com)")
-    st.markdown("- 🧠 Stretch into a Leadership Role")
-    st.markdown("- 🌱 Experiment with New Challenges")
-    st.markdown("- 🧘 Invest in Recovery Rituals")
-    st.markdown("### Jamie (jamie@example.com)")
-    st.markdown("- 🛠️ Build a Resilience Routine")
-    st.markdown("- 🔍 Clarify a Meaningful Short-Term Goal")
-    st.markdown("- 🤝 Expand Support Circle")
-    st.markdown("### Morgan (morgan@example.com)")
-    st.markdown("- 🛌 Permission to Rest")
-    st.markdown("- 🧩 Reconnect to Core Values")
-    st.markdown("- 🔦 Find Micro-Moments of Joy")
+def show_demo_coaching(selected_email):
+    if selected_email == "alex@example.com":
+        st.markdown("### Alex (alex@example.com)")
+        st.markdown("- 🧠 Stretch into a Leadership Role")
+        st.markdown("- 🌱 Experiment with New Challenges")
+        st.markdown("- 🧘 Invest in Recovery Rituals")
+    elif selected_email == "jamie@example.com":
+        st.markdown("### Jamie (jamie@example.com)")
+        st.markdown("- 🛠️ Build a Resilience Routine")
+        st.markdown("- 🔍 Clarify a Meaningful Short-Term Goal")
+        st.markdown("- 🤝 Expand Support Circle")
+    elif selected_email == "morgan@example.com":
+        st.markdown("### Morgan (morgan@example.com)")
+        st.markdown("- 🛌 Permission to Rest")
+        st.markdown("- 🧩 Reconnect to Core Values")
+        st.markdown("- 🔦 Find Micro-Moments of Joy")
+    else:
+        st.warning("No coaching suggestions available.")
+
