@@ -45,11 +45,12 @@ def load_user_checkins(user_email):
         return df[df["user"] == user_email]
     return None
 
-def get_demo_checkins():
+def get_demo_checkins(selected_email):
     df = get_all_checkins()
     if df is not None and not df.empty:
-        return df[df["user"].isin(["alex@example.com", "jamie@example.com", "morgan@example.com"])]
+        return df[df["user"] == selected_email]
     return pd.DataFrame()
+
 
 def show_insights(df):
     st.dataframe(df.sort_values(by="date", ascending=False), use_container_width=True)
