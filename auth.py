@@ -1,52 +1,49 @@
 
 import streamlit as st
 import requests
+import pandas as pd
+from google_sheet import get_all_checkins
 
 FIREBASE_API_KEY = st.secrets["FIREBASE_API_KEY"]
-
 FIREBASE_REST_SIGNIN_URL = f"https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key={FIREBASE_API_KEY}"
 FIREBASE_REST_SIGNUP_URL = f"https://identitytoolkit.googleapis.com/v1/accounts:signUp?key={FIREBASE_API_KEY}"
 
-def google_login():
-    st.title("Sign In with Firebase (REST API)")
+def email_step_authentication():
+    email = st.text_input("Enter your email")
 
-    email = st.text_input("Email")
-    password = st.text_input("Password", type="password")
-    
-    col1, col2 = st.columns(2)
-    login_clicked = col1.button("Login")
-    signup_clicked = col2.button("Sign Up")
+    user_exists = False
+    authenticated = False
 
-    if login_clicked:
-        try:
-            payload = {
-                "email": email,
-                "password": password,
-                "returnSecureToken": True
-            }
-            res = requests.post(FIREBASE_REST_SIGNIN_URL, json=payload)
-            res.raise_for_status()
-            user_info = res.json()
-            st.session_state["user_email"] = user_info["email"]
-            st.session_state["id_token"] = user_info["idToken"]
-            st.success("✅ Logged in successfully!")
-        except Exception as e:
-            st.error(f"❌ Failed to login: {e}")
+    if email:
+        all_data = get_all_checkins()
+        if not all_data.empty:
+            user_exists = email in all_data["user"].unique()
 
-    if signup_clicked:
-        try:
-            payload = {
-                "email": email,
-                "password": password,
-                "returnSecureToken": True
-            }
-            res = requests.post(FIREBASE_REST_SIGNUP_URL, json=payload)
-            res.raise_for_status()
-            user_info = res.json()
-            st.session_state["user_email"] = user_info["email"]
-            st.session_state["id_token"] = user_info["idToken"]
-            st.success("✅ Account created and logged in successfully!")
-        except Exception as e:
-            st.error(f"❌ Failed to create account: {e}")
+        if user_exists:
+            st.success("✅ Existing user found. Please login.")
+            password = st.text_input("Password", type="password")
+            if st.button("Login"):
+                try:
+                    payload = {"email": email, "password": password, "returnSecureToken": True}
+                    res = requests.post(FIREBASE_REST_SIGNIN_URL, json=payload)
+                    res.raise_for_status()
+                    authenticated = True
+                except Exception as e:
+                    st.error(f"❌ Failed to login: {e}")
+        else:
+            st.info("🆕 New user. Please sign up.")
+            password = st.text_input("Choose a password", type="password")
+            password_confirm = st.text_input("Confirm password", type="password")
+            if st.button("Sign Up"):
+                if password == password_confirm and password != "":
+                    try:
+                        payload = {"email": email, "password": password, "returnSecureToken": True}
+                        res = requests.post(FIREBASE_REST_SIGNUP_URL, json=payload)
+                        res.raise_for_status()
+                        authenticated = True
+                    except Exception as e:
+                        st.error(f"❌ Failed to signup: {e}")
+                else:
+                    st.error("❌ Passwords do not match or are empty!")
 
-    return st.session_state.get("user_email")
+    return email, user_exists, authenticated
