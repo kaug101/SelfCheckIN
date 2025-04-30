@@ -36,13 +36,16 @@ if mode == "🎯 Demo Mode":
         st.warning("No demo data found for this persona.")
 
 elif mode == "🙋‍♂️ User Mode":
-    st.subheader("User Login / Signup")
-
-    user_email, user_exists, authenticated = email_step_authentication()
-
-    if authenticated:
+    if "authenticated" not in st.session_state or not st.session_state["authenticated"]:
+        user_email, user_exists, authenticated = email_step_authentication()
+        if authenticated:
+            st.session_state["authenticated"] = True
+            st.session_state["user_email"] = user_email
+            st.experimental_rerun()
+    else:
+        user_email = st.session_state["user_email"]
         st.success(f"✅ Logged in as: {user_email}")
-        user_action = "🆕 New Check-In"  # Default for new users
+        user_action = "🆕 New Check-In"
 
         df = load_user_checkins(user_email)
         if df is not None and not df.empty:
