@@ -42,7 +42,7 @@ elif mode == "🙋‍♂️ User Mode":
             st.session_state["authenticated"] = True
             st.session_state["user_email"] = user_email
             st.rerun()
-        else:
+        elif user_email:  # only show error if the user interacted
             st.error("❌ Login issue. Try again.")
     else:
         user_email = st.session_state.get("user_email", "unknown@example.com")
