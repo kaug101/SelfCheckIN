@@ -4,7 +4,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from datetime import date
 from google_sheet import append_checkin_to_sheet, get_all_checkins
-import openai
+from openai import OpenAI
 
 canvas_qs = {
     "Motivation": ["What still excites or matters to me?", "If I could only keep one reason to continue, what would it be?"],
@@ -61,36 +61,8 @@ def show_insights(df):
         df = df.sort_values("date")
         st.line_chart(df.set_index("date")["score"])
 
-def show_demo_coaching(selected_email):
-    if selected_email == "alex@example.com":
-        st.markdown("### Alex (alex@example.com)")
-        st.markdown("""- 🧠 **Stretch into a Leadership Role**  
-Alex is consistently performing at a high level and showing signs of sustained motivation and support. Taking on leadership can help channel their energy into multiplying impact.""")
-        st.markdown("""- 🌱 **Experiment with New Challenges**  
-To avoid plateauing, Alex should seek out stretch assignments or novel tasks that demand new skills and perspectives.""")
-        st.markdown("""- 🧘 **Invest in Recovery Rituals**  
-While high performing, the data hints at intense engagement that could lead to burnout. Small rituals like nature walks or journaling can enhance long-term resilience.""")
-    elif selected_email == "jamie@example.com":
-        st.markdown("### Jamie (jamie@example.com)")
-        st.markdown("""- 🛠️ **Build a Resilience Routine**  
-Jamie’s entries show signs of moderate motivation but inconsistent energy. Introducing small, daily recovery habits can help maintain momentum.""")
-        st.markdown("""- 🔍 **Clarify a Meaningful Short-Term Goal**  
-The text shows a drift in purpose. Setting a concrete 2-week target can reinstate direction and reduce emotional fatigue.""")
-        st.markdown("""- 🤝 **Expand Support Circle**  
-Support system references are sparse. Encouraging Jamie to proactively reconnect with peers or mentors can stabilize emotional load.""")
-    elif selected_email == "morgan@example.com":
-        st.markdown("### Morgan (morgan@example.com)")
-        st.markdown("""- 🛌 **Permission to Rest**  
-Morgan’s check-ins point to exhaustion and demotivation. Before any change, recovery needs to be prioritized — guilt-free rest is valid and necessary.""")
-        st.markdown("""- 🧩 **Reconnect to Core Values**  
-The text shows signs of identity disconnection. Reflecting on why certain things matter can re-anchor purpose and self-worth.""")
-        st.markdown("""- 🔦 **Find Micro-Moments of Joy**  
-Morgan should be encouraged to note 1–2 tiny joys per day. Building emotional scaffolding from joy is a proven recovery tool.""")
-    else:
-        st.warning("No coaching suggestions available.")
-
 def generate_openai_feedback(canvas_answers: dict) -> str:
-    openai.api_key = st.secrets["OPENAI_API_KEY"]
+    client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
 
     flat_responses = []
     for category, responses in canvas_answers.items():
@@ -110,7 +82,7 @@ Responses:
 """
 
     try:
-        response = openai.ChatCompletion.create(
+        response = client.chat.completions.create(
             model="gpt-4-0125-preview",
             messages=[
                 {"role": "system", "content": "You are a wise and supportive human coach."},
@@ -118,6 +90,6 @@ Responses:
             ],
             temperature=0.7,
         )
-        return response["choices"][0]["message"]["content"]
+        return response.choices[0].message.content
     except Exception as e:
         return f"⚠️ OpenAI Error: {str(e)}"

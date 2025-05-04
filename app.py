@@ -1,6 +1,5 @@
 
 import streamlit as st
-import pandas as pd
 from auth import email_step_authentication
 from checkin_utils import (
     ask_questions,
@@ -39,14 +38,16 @@ if mode == "🎯 Demo Mode":
 elif mode == "🙋‍♂️ User Mode":
     if "authenticated" not in st.session_state or not st.session_state["authenticated"]:
         user_email, user_exists, authenticated = email_step_authentication()
-        if authenticated and user_email:
+        if authenticated:
+            if not user_email:
+                user_email = "unknown@example.com"
             st.session_state["authenticated"] = True
             st.session_state["user_email"] = user_email
             st.rerun()
         else:
-            st.error("❌ Something went wrong during login. Please try again.")
+            st.error("❌ Login issue. Try again.")
     else:
-        user_email = st.session_state["user_email"]
+        user_email = st.session_state.get("user_email", "unknown@example.com")
         st.success(f"✅ Logged in as: {user_email}")
         user_action = "🆕 New Check-In"
 
@@ -55,8 +56,7 @@ elif mode == "🙋‍♂️ User Mode":
             user_action = st.selectbox("What would you like to do?", ("📈 View Past Insights", "🆕 New Check-In"))
 
         if user_action == "📈 View Past Insights":
-            if df is not None:
-                show_insights(df)
+            show_insights(df)
 
         if user_action == "🆕 New Check-In":
             canvas_answers = ask_questions()
