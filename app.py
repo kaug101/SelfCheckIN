@@ -39,10 +39,12 @@ if mode == "🎯 Demo Mode":
 elif mode == "🙋‍♂️ User Mode":
     if "authenticated" not in st.session_state or not st.session_state["authenticated"]:
         user_email, user_exists, authenticated = email_step_authentication()
-        if authenticated:
+        if authenticated and user_email:
             st.session_state["authenticated"] = True
             st.session_state["user_email"] = user_email
-            st.experimental_rerun()
+            st.rerun()
+        else:
+            st.error("❌ Something went wrong during login. Please try again.")
     else:
         user_email = st.session_state["user_email"]
         st.success(f"✅ Logged in as: {user_email}")
