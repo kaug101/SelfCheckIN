@@ -18,7 +18,7 @@ def ask_questions():
     for section, questions in canvas_qs.items():
         st.markdown(f"#### {section}")
         answers[section] = [
-            st.text_area(q, key=q, max_chars=800, help="Max ~100 words") for q in questions
+            st.text_area(q, key=q, max_chars=500, help="Typ quick checkin with 100 words (~500 characters)") for q in questions           
         ]
     return answers
 
