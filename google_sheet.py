@@ -1,4 +1,3 @@
-
 import gspread
 from google.oauth2 import service_account
 import base64
@@ -7,6 +6,7 @@ import streamlit as st
 import pandas as pd
 
 GOOGLE_SHEET_ID = "1-_qYgfLjxnxfwo-sNkkM6xEDWwEAmtizUP0n9aUQS40"
+
 
 def get_worksheet():
     encoded_credentials = st.secrets["GCP"]["service_account_base64"]
@@ -26,9 +26,8 @@ def get_worksheet():
 def append_checkin_to_sheet(data_dict):
     try:
         worksheet = get_worksheet()
-        headers = worksheet.row_values(1)
-        row = [data_dict.get(header, "") for header in headers]
-        worksheet.append_row(row)
+        header = worksheet.row_values(1)     
+        row = [entry.get(col, "") for col in header]
         st.success("✅ Successfully saved check-in to Google Sheets.")
     except Exception as e:
         import traceback
