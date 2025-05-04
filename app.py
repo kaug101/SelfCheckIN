@@ -1,1 +1,77 @@
-placeholder
+
+import streamlit as st
+from auth import email_step_authentication
+from checkin_utils import (
+    ask_questions,
+    generate_score,
+    save_checkin,
+    load_user_checkins,
+    show_insights,
+    get_demo_checkins,
+    generate_openai_feedback,
+    show_demo_coaching
+)
+
+st.set_page_config(page_title="Fuel Check-In App", layout="centered")
+st.title("🏁 Welcome to the Daily Fuel Check-In App")
+
+mode = st.radio("Choose your mode:", ["🎯 Demo Mode", "🙋‍♂️ User Mode"])
+
+if mode == "🎯 Demo Mode":
+    st.subheader("Demo Mode: View Individual Personas")
+    selected_persona = st.radio("Choose a persona:", ["Alex (alex@example.com)", "Jamie (jamie@example.com)", "Morgan (morgan@example.com)"])
+    persona_map = {
+        "Alex (alex@example.com)": "alex@example.com",
+        "Jamie (jamie@example.com)": "jamie@example.com",
+        "Morgan (morgan@example.com)": "morgan@example.com"
+    }
+    demo_data = get_demo_checkins(persona_map[selected_persona])
+    if not demo_data.empty:
+        show_insights(demo_data)
+        st.header("🧑‍🏫 Coaching Recommendations")
+        show_demo_coaching(persona_map[selected_persona])
+    else:
+        st.warning("No demo data found for this persona.")
+
+elif mode == "🙋‍♂️ User Mode":
+    if "authenticated" not in st.session_state or not st.session_state["authenticated"]:
+        user_email, user_exists, authenticated = email_step_authentication()
+        if authenticated:
+            if not user_email:
+                user_email = "unknown@example.com"
+            st.session_state["authenticated"] = True
+            st.session_state["user_email"] = user_email
+            st.rerun()
+        else:
+            st.error("❌ Login issue. Try again.")
+    else:
+        user_email = st.session_state.get("user_email", "unknown@example.com")
+        st.success(f"✅ Logged in as: {user_email}")
+        user_action = "🆕 New Check-In"
+
+        df = load_user_checkins(user_email)
+        if df is not None and not df.empty:
+            user_action = st.selectbox("What would you like to do?", ("📈 View Past Insights", "🆕 New Check-In"))
+
+        if user_action == "📈 View Past Insights":
+            show_insights(df)
+
+        if user_action == "🆕 New Check-In":
+            canvas_answers = ask_questions()
+            if st.button("Submit and Save Check-In"):
+                st.info("🔄 Calculating your dynamic score...")
+                score = generate_score(canvas_answers)
+                st.success(f"✅ Your total score is **{score}/25**")
+
+                st.subheader("🧠 Coaching Feedback from AI")
+                with st.spinner("Generating insights..."):
+                    insights = generate_openai_feedback(canvas_answers)
+                    st.markdown(insights)
+
+                try:
+                    save_checkin(user_email, canvas_answers, score, recommendation=insights)
+                    st.success("✅ Check-in successfully saved!")
+                except Exception as e:
+                    import traceback
+                    st.error(f"❌ Failed to save check-in: {e}")
+                    st.code(traceback.format_exc(), language="python")
