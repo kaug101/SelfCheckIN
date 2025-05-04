@@ -1,4 +1,3 @@
-
 import streamlit as st
 from auth import email_step_authentication
 from checkin_utils import (
@@ -57,6 +56,9 @@ elif mode == "🙋‍♂️ User Mode":
 
         if user_action == "📈 View Past Insights":
             show_insights(df)
+            if st.button("🚪 Sign Out"):
+                st.session_state.clear()
+                st.rerun()
 
         if user_action == "🆕 New Check-In":
             canvas_answers = ask_questions()
