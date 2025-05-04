@@ -9,7 +9,8 @@ from checkin_utils import (
     load_user_checkins,
     show_insights,
     show_demo_coaching,
-    get_demo_checkins
+    get_demo_checkins,
+    generate_openai_feedback
 )
 
 st.set_page_config(page_title="Fuel Check-In App", layout="centered")
@@ -64,6 +65,12 @@ elif mode == "🙋‍♂️ User Mode":
                 try:
                     save_checkin(user_email, canvas_answers, score)
                     st.success("✅ Check-in successfully saved!")
+
+                    st.subheader("🧠 Coaching Feedback from AI")
+                    with st.spinner("Generating insights..."):
+                        insights = generate_openai_feedback(canvas_answers)
+                        st.markdown(insights)
+
                 except Exception as e:
                     import traceback
                     st.error(f"❌ Failed to save check-in: {e}")
