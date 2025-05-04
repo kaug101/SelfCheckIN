@@ -70,6 +70,20 @@ def show_insights(df):
     with st.expander("📋 Show full check-in details"):
         st.dataframe(df.sort_values(by="date", ascending=False), use_container_width=True)
 
+def show_demo_coaching(selected_email):
+    if selected_email == "alex@example.com":
+        st.markdown("### Alex (alex@example.com)")
+        st.markdown("- 🧠 **Stretch into a Leadership Role**  \nAlex is consistently performing at a high level...")
+    elif selected_email == "jamie@example.com":
+        st.markdown("### Jamie (jamie@example.com)")
+        st.markdown("- 🛠️ **Build a Resilience Routine**  \nJamie’s entries show signs of moderate motivation...")
+    elif selected_email == "morgan@example.com":
+        st.markdown("### Morgan (morgan@example.com)")
+        st.markdown("- 🛌 **Permission to Rest**  \nMorgan’s check-ins point to exhaustion and demotivation...")
+    else:
+        st.warning("No coaching suggestions available.")
+
+
 def generate_openai_feedback(canvas_answers: dict) -> str:
     client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
 
