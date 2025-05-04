@@ -13,6 +13,8 @@ def email_step_authentication():
 
     user_exists = False
     authenticated = False
+    login_attempted = False
+    signup_attempted = False
 
     if email:
         all_data = get_all_checkins()
@@ -23,6 +25,7 @@ def email_step_authentication():
             st.success("✅ Existing user found. Please login.")
             password = st.text_input("Password", type="password")
             if st.button("Login"):
+                login_attempted = True
                 try:
                     payload = {"email": email, "password": password, "returnSecureToken": True}
                     res = requests.post(FIREBASE_REST_SIGNIN_URL, json=payload)
@@ -36,6 +39,7 @@ def email_step_authentication():
             password = st.text_input("Choose a password", type="password")
             password_confirm = st.text_input("Confirm password", type="password")
             if st.button("Sign Up"):
+                signup_attempted = True
                 if password == password_confirm and password != "":
                     try:
                         payload = {"email": email, "password": password, "returnSecureToken": True}
@@ -48,4 +52,7 @@ def email_step_authentication():
                 else:
                     st.error("❌ Passwords do not match or are empty!")
 
-    return email, user_exists, authenticated
+    st.session_state["login_attempted"] = login_attempted
+    st.session_state["signup_attempted"] = signup_attempted
+
+    return email if authenticated else None, user_exists, authenticated

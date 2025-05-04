@@ -36,13 +36,15 @@ if mode == "🎯 Demo Mode":
 elif mode == "🙋‍♂️ User Mode":
     if "authenticated" not in st.session_state or not st.session_state["authenticated"]:
         user_email, user_exists, authenticated = email_step_authentication()
+        login_attempted = st.session_state.get("login_attempted", False)
+        signup_attempted = st.session_state.get("signup_attempted", False)
         if authenticated:
             if not user_email:
                 user_email = "unknown@example.com"
             st.session_state["authenticated"] = True
             st.session_state["user_email"] = user_email
             st.rerun()
-        elif user_email:  # only show error if the user interacted
+        elif user_email and (login_attempted or signup_attempted):
             st.error("❌ Login issue. Try again.")
     else:
         user_email = st.session_state.get("user_email", "unknown@example.com")
