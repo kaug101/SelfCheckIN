@@ -10,6 +10,8 @@ from checkin_utils import (
     generate_openai_feedback,
     show_demo_coaching
 )
+from openai_score_with_explanation import generate_openai_score
+
 
 st.set_page_config(page_title="Fuel Check-In App", layout="centered")
 st.title("🏁 Welcome to the Daily Fuel Check-In App")
@@ -64,9 +66,10 @@ elif mode == "🙋‍♂️ User Mode":
             canvas_answers = ask_questions()
             if st.button("Submit and Save Check-In"):
                 st.info("🔄 Calculating your dynamic score...")
-                score = generate_score(canvas_answers)
+                #score = generate_score(canvas_answers)
+                score, justification = generate_openai_score(canvas_answers)
                 st.success(f"✅ Your total score is **{score}/25**")
-
+                st.markdown(f"🧾 *{justification}*")
                 st.subheader("🧠 Coaching Feedback from AI")
                 with st.spinner("Generating insights..."):
                     insights = generate_openai_feedback(canvas_answers)
