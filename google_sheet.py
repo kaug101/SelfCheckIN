@@ -23,16 +23,18 @@ def get_worksheet():
     sheet = client.open_by_key(GOOGLE_SHEET_ID)
     return sheet.sheet1
 
-def append_checkin_to_sheet(data_dict):
+def append_checkin_to_sheet(entry: dict):
     try:
         worksheet = get_worksheet()
         header = worksheet.row_values(1)     
         row = [entry.get(col, "") for col in header]
+        worksheet.append_row(row)
         st.success("✅ Successfully saved check-in to Google Sheets.")
     except Exception as e:
         import traceback
         st.error("❌ Failed to write to Google Sheets.")
         st.code(traceback.format_exc(), language="python")
+
 
 def get_all_checkins():
     try:
