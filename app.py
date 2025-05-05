@@ -13,8 +13,8 @@ from checkin_utils import (
 from openai_score_with_explanation import generate_openai_score
 
 
-st.set_page_config(page_title="Fuel Check-In App", layout="centered")
-st.title("🏁 Welcome to the Daily Fuel Check-In App")
+st.set_page_config(page_title="Daily Check-In App", layout="centered")
+st.title("🏁 Welcome to the Daily Check-In App")
 
 mode = st.radio("Choose your mode:", ["🎯 Demo Mode", "🙋‍♂️ User Mode"])
 
