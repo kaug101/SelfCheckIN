@@ -57,10 +57,11 @@ elif mode == "🙋‍♂️ User Mode":
 
         df = load_user_checkins(user_email)
         if df is not None and not df.empty:
-            user_action = st.selectbox("What would you like to do?", ("📈 View Past Insights", "🆕 New Check-In"))
+            user_action = st.radio("Choose Action", ["New Check-In", "View Past Insights", "Delete My Account"]) #st.selectbox("What would you like to do?", ("📈 View Past Insights", "🆕 New Check-In"))
 
-        if st.button("🗑 Delete My Account"):
-            if st.button("❗ Confirm Deletion", key="confirm_delete"):
+        if action == "Delete My Account":
+            st.warning("⚠️ This will permanently delete your check-ins and Firebase account.")
+            if st.button("❗ Confirm Deletion"):
                 success1 = delete_all_user_checkins(user_email)
                 success2 = delete_account_from_firebase(st.session_state.get("id_token"))
                 if success1 and success2:
@@ -90,7 +91,7 @@ elif mode == "🙋‍♂️ User Mode":
 
                 try:
                     save_checkin(user_email, canvas_answers, score, recommendation=insights)
-                    st.success("✅ Check-in successfully saved!")
+                    #st.success("✅ Check-in successfully saved!")
                 except Exception as e:
                     import traceback
                     st.error(f"❌ Failed to save check-in: {e}")
