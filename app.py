@@ -59,7 +59,7 @@ elif mode == "🙋‍♂️ User Mode":
         if df is not None and not df.empty:
             user_action = st.radio("Choose Action", ["New Check-In", "View Past Insights", "Delete My Account"]) #st.selectbox("What would you like to do?", ("📈 View Past Insights", "🆕 New Check-In"))
 
-        if action == "Delete My Account":
+        if user_action == "Delete My Account":
             st.warning("⚠️ This will permanently delete your check-ins and Firebase account.")
             if st.button("❗ Confirm Deletion"):
                 success1 = delete_all_user_checkins(user_email)
