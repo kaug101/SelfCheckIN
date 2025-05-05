@@ -24,21 +24,31 @@ def ask_questions():
     return answers
 
 def save_checkin(user_email, canvas_answers, score, recommendation=None):
-    entry = {"date": str(date.today()), "user": user_email, "score": score}
     password = st.session_state.get("user_password", "")
+    now_str = datetime.now().strftime("%Y-%m-%d %H:%M")
+    entry = {
+        "date": encrypt_checkin(now_str, password, user_email),
+        "user": encrypt_checkin(user_email, password, user_email),
+        "score": encrypt_checkin(str(score), password, user_email),
+        "recommendation": encrypt_checkin(recommendation or "", password, user_email)
+    }
     for section, answers in canvas_answers.items():
         entry[f"{section} Q1"] = encrypt_checkin(answers[0], password, user_email)
         entry[f"{section} Q2"] = encrypt_checkin(answers[1], password, user_email)
-    entry["recommendation"] = recommendation or ""
     append_checkin_to_sheet(entry)
 
 def load_user_checkins(user_email):
     df = get_all_checkins()
     if df is not None and not df.empty:
-        df = df[df["user"] == user_email]
         password = st.session_state.get("user_password", "")
+        # Try to decrypt user column and filter matches
+        try:
+            df["user_decrypted"] = df["user"].apply(lambda val: decrypt_checkin(val, password, user_email))
+            df = df[df["user_decrypted"] == user_email]
+        except:
+            return pd.DataFrame()
         for col in df.columns:
-            if "Q" in col:
+            if col in ("user", "score", "recommendation", "date") or "Q" in col:
                 df[col] = df[col].apply(lambda val: decrypt_checkin(val, password, user_email) if val else "")
         return df
     return None
