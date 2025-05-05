@@ -47,3 +47,22 @@ def get_all_checkins():
         st.error("❌ Failed to load check-ins.")
         st.code(traceback.format_exc(), language="python")
         return None
+
+
+def update_google_sheet(updated_df):
+    try:
+        scope = ["https://www.googleapis.com/auth/spreadsheets"]
+        creds = Credentials.from_service_account_info(
+            st.secrets["GCP"], scopes=scope
+        )
+        client = gspread.authorize(creds)
+
+        sheet = client.open_by_key(st.secrets["GOOGLE_SHEET_ID"])
+        worksheet = sheet.sheet1
+
+        worksheet.clear()  # ⚠️ clears existing sheet
+        worksheet.update([updated_df.columns.values.tolist()] + updated_df.values.tolist())
+        return True
+    except Exception as e:
+        st.error(f"❌ Failed to update sheet: {e}")
+        return False
