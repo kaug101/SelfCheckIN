@@ -29,10 +29,10 @@ def append_checkin_to_sheet(entry: dict):
         header = worksheet.row_values(1)     
         row = [entry.get(col, "") for col in header]
         worksheet.append_row(row)
-        st.success("✅ Successfully saved check-in to Google Sheets.")
+        st.success("✅ Successfully saved check-in.")
     except Exception as e:
         import traceback
-        st.error("❌ Failed to write to Google Sheets.")
+        st.error("❌ Failed to save check-in.")
         st.code(traceback.format_exc(), language="python")
 
 
