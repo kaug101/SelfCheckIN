@@ -12,6 +12,9 @@ from checkin_utils import (
 )
 from openai_score_with_explanation import generate_openai_score
 
+from delete_user_utils import delete_account_from_firebase, delete_all_user_checkins
+
+
 
 st.set_page_config(page_title="Daily Check-In App", layout="centered")
 st.title("🏁 Welcome to the Daily Check-In App")
@@ -55,6 +58,16 @@ elif mode == "🙋‍♂️ User Mode":
         df = load_user_checkins(user_email)
         if df is not None and not df.empty:
             user_action = st.selectbox("What would you like to do?", ("📈 View Past Insights", "🆕 New Check-In"))
+
+        if st.button("🗑 Delete My Account"):
+            if st.button("❗ Confirm Deletion", key="confirm_delete"):
+                success1 = delete_all_user_checkins(user_email)
+                success2 = delete_account_from_firebase(st.session_state.get("id_token"))
+                if success1 and success2:
+                    st.success("✅ Your account and check-ins were deleted.")
+                else:
+                    st.warning("⚠️ Some parts of deletion may have failed.")
+                st.stop()
 
         if user_action == "📈 View Past Insights":
             show_insights(df)
