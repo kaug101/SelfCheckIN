@@ -23,7 +23,7 @@ def email_step_authentication():
 
         if user_exists:
             st.success("✅ Existing user found. Please login.")
-            password = st.text_input("Password", type="password")
+            password = st.text_input("Password", type="password", key="login_pw")
             if st.button("Login"):
                 login_attempted = True
                 try:
@@ -32,13 +32,13 @@ def email_step_authentication():
                     res.raise_for_status()
                     authenticated = True
                     st.session_state["user_email"] = email
-                    st.session_state["user_password"] = password  # store for encryption
+                    st.session_state["user_password"] = password
                 except Exception as e:
                     st.error(f"❌ Failed to login: {e}")
         else:
             st.info("🆕 New user. Please sign up.")
-            password = st.text_input("Choose a password", type="password")
-            password_confirm = st.text_input("Confirm password", type="password")
+            password = st.text_input("Choose a password", type="password", key="signup_pw")
+            password_confirm = st.text_input("Confirm password", type="password", key="signup_confirm_pw")
             if st.button("Sign Up"):
                 signup_attempted = True
                 if password == password_confirm and password != "":
@@ -48,7 +48,7 @@ def email_step_authentication():
                         res.raise_for_status()
                         authenticated = True
                         st.session_state["user_email"] = email
-                        st.session_state["user_password"] = password  # store for encryption
+                        st.session_state["user_password"] = password
                     except Exception as e:
                         st.error(f"❌ Failed to signup: {e}")
                 else:
