@@ -2,7 +2,7 @@ import streamlit as st
 from auth import email_step_authentication
 from checkin_utils import (
     ask_questions,
-    generate_score,
+    #generate_score,
     save_checkin,
     load_user_checkins,
     show_insights,
