@@ -44,6 +44,6 @@ def get_all_checkins():
         return df
     except Exception as e:
         import traceback
-        st.error("❌ Failed to load check-ins from Google Sheets.")
+        st.error("❌ Failed to load check-ins.")
         st.code(traceback.format_exc(), language="python")
         return None
