@@ -24,8 +24,11 @@ def encrypt_checkin(plain_text: str, password: str, user_email: str) -> str:
     cipher = Fernet(key)
     return cipher.encrypt(plain_text.encode()).decode()
 
-# Decrypt check-in text with derived key
+# Decrypt check-in text with derived key, fallback to original text if decrypt fails
 def decrypt_checkin(cipher_text: str, password: str, user_email: str) -> str:
-    key = derive_key(password, user_email)
-    cipher = Fernet(key)
-    return cipher.decrypt(cipher_text.encode()).decode()
+    try:
+        key = derive_key(password, user_email)
+        cipher = Fernet(key)
+        return cipher.decrypt(cipher_text.encode()).decode()
+    except Exception:
+        return cipher_text
