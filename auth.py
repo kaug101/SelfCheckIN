@@ -32,6 +32,7 @@ def email_step_authentication():
                     res.raise_for_status()
                     authenticated = True
                     st.session_state["user_email"] = email
+                    st.session_state["user_password"] = password  # store for encryption
                 except Exception as e:
                     st.error(f"❌ Failed to login: {e}")
         else:
@@ -47,6 +48,7 @@ def email_step_authentication():
                         res.raise_for_status()
                         authenticated = True
                         st.session_state["user_email"] = email
+                        st.session_state["user_password"] = password  # store for encryption
                     except Exception as e:
                         st.error(f"❌ Failed to signup: {e}")
                 else:
