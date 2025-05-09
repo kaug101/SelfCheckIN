@@ -27,12 +27,14 @@ def email_step_authentication():
             if st.button("Login"):
                 login_attempted = True
                 try:
-                    payload = {"email": email, "password": password, "returnSecureToken": True}
+                   payload = {"email": email, "password": password, "returnSecureToken": True}
                     res = requests.post(FIREBASE_REST_SIGNIN_URL, json=payload)
                     res.raise_for_status()
+                    res_data = res.json()
                     authenticated = True
                     st.session_state["user_email"] = email
                     st.session_state["user_password"] = password
+                    st.session_state["id_token"] = res_data.get("idToken")
                 except Exception as e:
                     st.error(f"❌ Failed to login: {e}")
         else:
@@ -46,9 +48,11 @@ def email_step_authentication():
                         payload = {"email": email, "password": password, "returnSecureToken": True}
                         res = requests.post(FIREBASE_REST_SIGNUP_URL, json=payload)
                         res.raise_for_status()
+                        res_data = res.json()
                         authenticated = True
                         st.session_state["user_email"] = email
                         st.session_state["user_password"] = password
+                        st.session_state["id_token"] = res_data.get("idToken")
                     except Exception as e:
                         st.error(f"❌ Failed to signup: {e}")
                 else:
