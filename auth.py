@@ -1,8 +1,6 @@
 
 import streamlit as st
 import requests
-import pandas as pd
-from google_sheet import get_all_checkins
 
 FIREBASE_API_KEY = st.secrets["FIREBASE_API_KEY"]
 FIREBASE_REST_SIGNIN_URL = f"https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key={FIREBASE_API_KEY}"
@@ -24,18 +22,28 @@ def send_password_reset_email(email):
 def email_step_authentication():
     email = st.text_input("Enter your email")
 
-    user_exists = False
     authenticated = False
     login_attempted = False
     signup_attempted = False
+    firebase_user_exists = None
 
     if email:
-        all_data = get_all_checkins()
-        if not all_data.empty:
-            user_exists = email in all_data["user"].unique()
+        # Try a silent login to test if user exists in Firebase
+        password_check = "fakepassword"
+        payload_check = {
+            "email": email,
+            "password": password_check,
+            "returnSecureToken": True
+        }
+        try:
+            res = requests.post(FIREBASE_REST_SIGNIN_URL, json=payload_check)
+            res_data = res.json()
+            firebase_user_exists = res_data.get("error", {}).get("message") != "EMAIL_NOT_FOUND"
+        except Exception:
+            firebase_user_exists = False
 
-        if user_exists:
-            st.success("✅ Existing user found. Please login.")
+        if firebase_user_exists:
+            st.success("✅ User found in Firebase. Please login.")
             password = st.text_input("Password", type="password", key="login_pw")
             if st.button("Login"):
                 login_attempted = True
@@ -53,7 +61,7 @@ def email_step_authentication():
                     if st.button("Reset Password"):
                         send_password_reset_email(email)
         else:
-            st.info("🆕 New user. Please sign up.")
+            st.info("🆕 No Firebase account found. Please sign up.")
             password = st.text_input("Choose a password", type="password", key="signup_pw")
             password_confirm = st.text_input("Confirm password", type="password", key="signup_confirm_pw")
             if st.button("Sign Up"):
@@ -76,4 +84,4 @@ def email_step_authentication():
     st.session_state["login_attempted"] = login_attempted
     st.session_state["signup_attempted"] = signup_attempted
 
-    return email if authenticated else None, user_exists, authenticated
+    return email if authenticated else None, firebase_user_exists, authenticated
