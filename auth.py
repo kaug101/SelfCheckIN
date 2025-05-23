@@ -57,7 +57,10 @@ def email_step_authentication():
                     st.session_state["user_password"] = password
                     st.session_state["id_token"] = res_data.get("idToken")
                 except Exception as e:
-                    st.error(f"❌ Failed to login: {e}")
+                    res_json = res.json()
+                    error_message = res_json.get("error", {}).get("message", "Unknown error")
+                    st.error(f"❌ Firebase Login Error: {error_message}")
+
                     if st.button("Reset Password"):
                         send_password_reset_email(email)
         else:
