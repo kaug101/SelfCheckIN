@@ -51,11 +51,16 @@ def get_all_checkins():
 
 def update_google_sheet(updated_df):
     try:
-        scope = ["https://www.googleapis.com/auth/spreadsheets"]
-        creds = Credentials.from_service_account_info(
-            st.secrets["GCP"], scopes=scope
-        )
-        client = gspread.authorize(creds)
+        encoded_credentials = st.secrets["GCP"]["service_account_base64"]
+        decoded = base64.b64decode(encoded_credentials).decode("utf-8")
+        credentials_dict = json.loads(decoded)
+        
+        scope = [
+            "https://www.googleapis.com/auth/spreadsheets",
+            "https://www.googleapis.com/auth/drive"
+        ]
+        credentials = service_account.Credentials.from_service_account_info(credentials_dict, scopes=scope)
+        client = gspread.authorize(credentials)
 
         sheet = client.open_by_key(st.secrets["GOOGLE_SHEET_ID"])
         worksheet = sheet.sheet1
