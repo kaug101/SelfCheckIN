@@ -62,7 +62,7 @@ def update_google_sheet(updated_df):
         credentials = service_account.Credentials.from_service_account_info(credentials_dict, scopes=scope)
         client = gspread.authorize(credentials)
 
-        sheet = client.open_by_key(st.secrets["GOOGLE_SHEET_ID"])
+        sheet = client.open_by_key(GOOGLE_SHEET_ID)
         worksheet = sheet.sheet1
 
         worksheet.clear()  # ⚠️ clears existing sheet
