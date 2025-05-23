@@ -49,6 +49,18 @@ def load_user_checkins(user_email):
         return df
     return None
 
+def get_demo_checkins(selected_email):
+    df = get_all_checkins()
+    if df is not None and not df.empty:
+        password = st.session_state.get("user_password", "")
+        df["user_decrypted"] = df["user"].apply(lambda val: decrypt_checkin(val, password, selected_email))
+        df = df[df["user_decrypted"] == selected_email]
+        for col in df.columns:
+            if col in ("user", "score", "recommendation", "date") or "Q" in col:
+                df[col] = df[col].apply(lambda val: decrypt_checkin(val, password, selected_email) if val else "")
+        return df
+    return pd.DataFrame()
+
 def show_insights(df):
     st.subheader("📊 Check-In Score Summary")
     if "date" in df.columns and "score" in df.columns:
