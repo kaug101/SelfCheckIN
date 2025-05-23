@@ -75,3 +75,37 @@ def show_insights(df):
 
     with st.expander("📋 Show full check-in details"):
         st.dataframe(df.sort_values(by="date", ascending=False), use_container_width=True)
+
+def generate_openai_feedback(canvas_answers: dict) -> str:
+    client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
+
+    flat_responses = []
+    for category, responses in canvas_answers.items():
+        joined = " | ".join(responses)
+        flat_responses.append(f"{category}: {joined}")
+
+    prompt = f"""
+You are a helpful and empathetic coach. Below are a user's self-check-in responses across 5 life areas.
+
+Please provide:
+- A short paragraph (3–5 sentences) of overall insights
+- 2–3 personalized coaching actions
+- A 1-line theme or direction for their next phase of growth
+
+Responses:
+{chr(10).join(flat_responses)}
+"""
+
+    try:
+        response = client.chat.completions.create(
+            model="gpt-4-0125-preview",
+            messages=[
+                {"role": "system", "content": "You are a wise and supportive human coach."},
+                {"role": "user", "content": prompt}
+            ],
+            temperature=0.7,
+        )
+        return response.choices[0].message.content
+    except Exception as e:
+        return f"⚠️ OpenAI Error: {str(e)}"
+
