@@ -30,17 +30,19 @@ def email_step_authentication():
     if email:
         payload_check = {
             "email": email,
-            "password": "wrongpassword",
+            "password": "wrong-password-check",
             "returnSecureToken": True
         }
         try:
             res = requests.post(FIREBASE_REST_SIGNIN_URL, json=payload_check)
             res_data = res.json()
-            if "error" in res_data:
-                if res_data["error"]["message"] == "EMAIL_NOT_FOUND":
-                    firebase_user_exists = False
-                else:
-                    firebase_user_exists = True
+            error_message = res_data.get("error", {}).get("message", "")
+            if error_message == "EMAIL_NOT_FOUND":
+                firebase_user_exists = False
+            elif error_message == "INVALID_PASSWORD":
+                firebase_user_exists = True
+            else:
+                firebase_user_exists = False
         except Exception:
             firebase_user_exists = False
 
