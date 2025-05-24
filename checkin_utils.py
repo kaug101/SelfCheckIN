@@ -102,26 +102,26 @@ User's responses:
 def build_image_prompt(theme_line, emotional_tone, suggestions: list) -> str:
     suggestions_text = "\n".join([f"- {s}" for s in suggestions])
     return f"""
-Create an artistic, symbolic illustration inspired by a coaching session.
-
-The theme of the session is:
-"{theme_line}"
-
-The user's reflections suggest a mood of:
-"{emotional_tone}"
-
-Here are the coaching suggestions they received:
-{suggestions_text}
-
-Please visualize these ideas through metaphorical or emotional imagery.
-Style: Soft lighting, serene atmosphere, slightly surreal but optimistic.
-Avoid text or literal labels. Focus on tone and symbolism.
-
-Use colors and objects that represent:
-- clarity
-- renewal
-- strength from within
-"""
+        Create an artistic, symbolic illustration inspired by a coaching session.
+        
+        The theme of the session is:
+        {theme_line}
+        
+        The user's reflections suggest a mood of:
+        {emotional_tone}
+        
+        Here are the coaching suggestions they received:
+        {suggestions_text}
+        
+        Please visualize these ideas through metaphorical or emotional imagery.
+        Style: Soft lighting, serene atmosphere, slightly surreal but optimistic.
+        Avoid text or literal labels. Focus on tone and symbolism.
+        
+        Use colors and objects that represent:
+        - clarity
+        - renewal
+        - strength from within
+        """
 
 def show_insights(df):
     st.subheader("📊 Check-In Score Summary")
@@ -137,3 +137,16 @@ def show_insights(df):
 
     with st.expander("📋 Show full check-in details"):
         st.dataframe(df.sort_values(by="date", ascending=False), use_container_width=True)
+
+
+def get_demo_checkins(selected_email):
+    df = get_all_checkins()
+    if df is not None and not df.empty:
+        password = st.session_state.get("user_password", "")
+        df["user_decrypted"] = df["user"].apply(lambda val: decrypt_checkin(val, password, selected_email))
+        df = df[df["user_decrypted"] == selected_email]
+        for col in df.columns:
+            if col in ("user", "score", "recommendation", "date") or "Q" in col:
+                df[col] = df[col].apply(lambda val: decrypt_checkin(val, password, selected_email) if val else "")
+        return df
+    return pd.DataFrame()
