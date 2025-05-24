@@ -85,15 +85,35 @@ def generate_openai_feedback(canvas_answers: dict) -> str:
         flat_responses.append(f"{category}: {joined}")
 
     prompt = f"""
-You are a helpful and empathetic coach. Below are a user's self-check-in responses across 5 life areas.
+        
+        You are a professional human coach known for being warm, insightful, and practical.
+        
+        A user has completed a daily self-check-in across 5 key life areas: Motivation, Energy & Resilience, Support Systems, Growth Mindset, and Vision.
+        
+        Your task is to:
+        1. Thoughtfully **analyze their responses**
+        2. Assign a score from **1 to 25** that reflects:
+           - Emotional clarity
+           - Depth of self-awareness
+           - Intentionality
+           - Growth-oriented thinking
+        3. Provide a short **justification** for the score
+        4. Share 2–3 **specific coaching actions** or reflections they can apply
+        5. Summarize their overall theme or **growth direction** in one line
+        
+        Be clear, caring, and insightful. Use the following format:
+        
+        Score: <number>
+        Explanation: <Why this score?>
+        Actions:
+        - <Personalized suggestion 1>
+        - <Personalized suggestion 2>
+        - <Optional suggestion 3>
+        Theme: <1-line overall coaching theme>
+        
+        User's responses:
+        {chr(10).join(flat_responses)}
 
-Please provide:
-- A short paragraph (3–5 sentences) of overall insights
-- 2–3 personalized coaching actions
-- A 1-line theme or direction for their next phase of growth
-
-Responses:
-{chr(10).join(flat_responses)}
 """
 
     try:
