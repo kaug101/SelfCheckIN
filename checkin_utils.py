@@ -49,33 +49,6 @@ def load_user_checkins(user_email):
         return df
     return None
 
-def get_demo_checkins(selected_email):
-    df = get_all_checkins()
-    if df is not None and not df.empty:
-        password = st.session_state.get("user_password", "")
-        df["user_decrypted"] = df["user"].apply(lambda val: decrypt_checkin(val, password, selected_email))
-        df = df[df["user_decrypted"] == selected_email]
-        for col in df.columns:
-            if col in ("user", "score", "recommendation", "date") or "Q" in col:
-                df[col] = df[col].apply(lambda val: decrypt_checkin(val, password, selected_email) if val else "")
-        return df
-    return pd.DataFrame()
-
-def show_insights(df):
-    st.subheader("📊 Check-In Score Summary")
-    if "date" in df.columns and "score" in df.columns:
-        df["date"] = pd.to_datetime(df["date"], errors="coerce")
-        df = df.sort_values("date")
-        st.line_chart(df.set_index("date")["score"])
-
-    if "recommendation" in df.columns and not df["recommendation"].isnull().all():
-        latest = df.sort_values("date").iloc[-1]
-        st.subheader("🧠 Last Coaching Recommendation")
-        st.markdown(latest["recommendation"])
-
-    with st.expander("📋 Show full check-in details"):
-        st.dataframe(df.sort_values(by="date", ascending=False), use_container_width=True)
-
 def generate_openai_feedback(canvas_answers: dict) -> str:
     client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
 
@@ -85,35 +58,32 @@ def generate_openai_feedback(canvas_answers: dict) -> str:
         flat_responses.append(f"{category}: {joined}")
 
     prompt = f"""
-        
-        You are a professional human coach known for being warm, insightful, and practical.
-        
-        A user has completed a daily self-check-in across 5 key life areas: Motivation, Energy & Resilience, Support Systems, Growth Mindset, and Vision.
-        
-        Your task is to:
-        1. Thoughtfully **analyze their responses**
-        2. Assign a score from **1 to 25** that reflects:
-           - Emotional clarity
-           - Depth of self-awareness
-           - Intentionality
-           - Growth-oriented thinking
-        3. Provide a short **justification** for the score
-        4. Share 2–3 **specific coaching actions** or reflections they can apply
-        5. Summarize their overall theme or **growth direction** in one line
-        
-        Be clear, caring, and insightful. Use the following format:
-        
-        Score: <number>
-        Explanation: <Why this score?>
-        Actions:
-        - <Personalized suggestion 1>
-        - <Personalized suggestion 2>
-        - <Optional suggestion 3>
-        Theme: <1-line overall coaching theme>
-        
-        User's responses:
-        {chr(10).join(flat_responses)}
+You are a professional human coach known for being warm, insightful, and practical.
 
+A user has completed a daily self-check-in across 5 key life areas: Motivation, Energy & Resilience, Support Systems, Growth Mindset, and Vision.
+
+Your task is to:
+1. Thoughtfully analyze their responses
+2. Assign a score from 1 to 25 based on:
+   - Emotional clarity
+   - Depth of self-awareness
+   - Intentionality
+   - Growth-oriented thinking
+3. Provide a short justification for the score
+4. Share 2–3 specific coaching actions or reflections
+5. Summarize their overall theme or growth direction in one line
+
+Format:
+Score: <number>
+Explanation: <brief explanation>
+Actions:
+- <Personalized suggestion 1>
+- <Personalized suggestion 2>
+- <Optional suggestion 3>
+Theme: <1-line theme>
+
+User's responses:
+{chr(10).join(flat_responses)}
 """
 
     try:
@@ -129,23 +99,41 @@ def generate_openai_feedback(canvas_answers: dict) -> str:
     except Exception as e:
         return f"⚠️ OpenAI Error: {str(e)}"
 
+def build_image_prompt(theme_line, emotional_tone, suggestions: list) -> str:
+    suggestions_text = "\n".join([f"- {s}" for s in suggestions])
+    return f"""
+Create an artistic, symbolic illustration inspired by a coaching session.
 
-def show_demo_coaching(selected_email):
-    if selected_email == "alex@example.com":
-        st.markdown("### Alex (alex@example.com)")
-        st.markdown("- 🧠 **Stretch into a Leadership Role**  \nAlex is consistently performing at a high level and showing signs of sustained motivation and support. Taking on leadership can help channel their energy into multiplying impact.")
-        st.markdown("- 🌱 **Experiment with New Challenges**  \nTo avoid plateauing, Alex should seek out stretch assignments or novel tasks that demand new skills and perspectives.")
-        st.markdown("- 🧘 **Invest in Recovery Rituals**  \nWhile high performing, the data hints at intense engagement that could lead to burnout. Small rituals like nature walks or journaling can enhance long-term resilience.")
-    elif selected_email == "jamie@example.com":
-        st.markdown("### Jamie (jamie@example.com)")
-        st.markdown("- 🛠️ **Build a Resilience Routine**  \nJamie’s entries show signs of moderate motivation but inconsistent energy. Introducing small, daily recovery habits can help maintain momentum.")
-        st.markdown("- 🔍 **Clarify a Meaningful Short-Term Goal**  \nThe text shows a drift in purpose. Setting a concrete 2-week target can reinstate direction and reduce emotional fatigue.")
-        st.markdown("- 🤝 **Expand Support Circle**  \nSupport system references are sparse. Encouraging Jamie to proactively reconnect with peers or mentors can stabilize emotional load.")
-    elif selected_email == "morgan@example.com":
-        st.markdown("### Morgan (morgan@example.com)")
-        st.markdown("- 🛌 **Permission to Rest**  \nMorgan’s check-ins point to exhaustion and demotivation. Before any change, recovery needs to be prioritized — guilt-free rest is valid and necessary.")
-        st.markdown("- 🧩 **Reconnect to Core Values**  \nThe text shows signs of identity disconnection. Reflecting on why certain things matter can re-anchor purpose and self-worth.")
-        st.markdown("- 🔦 **Find Micro-Moments of Joy**  \nMorgan should be encouraged to note 1–2 tiny joys per day. Building emotional scaffolding from joy is a proven recovery tool.")
-    else:
-        st.warning("No coaching suggestions available.")
+The theme of the session is:
+"{theme_line}"
 
+The user's reflections suggest a mood of:
+"{emotional_tone}"
+
+Here are the coaching suggestions they received:
+{suggestions_text}
+
+Please visualize these ideas through metaphorical or emotional imagery.
+Style: Soft lighting, serene atmosphere, slightly surreal but optimistic.
+Avoid text or literal labels. Focus on tone and symbolism.
+
+Use colors and objects that represent:
+- clarity
+- renewal
+- strength from within
+"""
+
+def show_insights(df):
+    st.subheader("📊 Check-In Score Summary")
+    if "date" in df.columns and "score" in df.columns:
+        df["date"] = pd.to_datetime(df["date"], errors="coerce")
+        df = df.sort_values("date")
+        st.line_chart(df.set_index("date")["score"])
+
+    if "recommendation" in df.columns and not df["recommendation"].isnull().all():
+        latest = df.sort_values("date").iloc[-1]
+        st.subheader("🧠 Last Coaching Recommendation")
+        st.markdown(latest["recommendation"])
+
+    with st.expander("📋 Show full check-in details"):
+        st.dataframe(df.sort_values(by="date", ascending=False), use_container_width=True)
