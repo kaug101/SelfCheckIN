@@ -28,17 +28,19 @@ def email_step_authentication():
     firebase_user_exists = None
 
     if email:
-        # Try a silent login to test if user exists in Firebase
-        password_check = "fakepassword"
         payload_check = {
             "email": email,
-            "password": password_check,
+            "password": "wrongpassword",
             "returnSecureToken": True
         }
         try:
             res = requests.post(FIREBASE_REST_SIGNIN_URL, json=payload_check)
             res_data = res.json()
-            firebase_user_exists = res_data.get("error", {}).get("message") != "EMAIL_NOT_FOUND"
+            if "error" in res_data:
+                if res_data["error"]["message"] == "EMAIL_NOT_FOUND":
+                    firebase_user_exists = False
+                else:
+                    firebase_user_exists = True
         except Exception:
             firebase_user_exists = False
 
@@ -57,10 +59,7 @@ def email_step_authentication():
                     st.session_state["user_password"] = password
                     st.session_state["id_token"] = res_data.get("idToken")
                 except Exception as e:
-                    res_json = res.json()
-                    error_message = res_json.get("error", {}).get("message", "Unknown error")
-                    st.error(f"❌ Firebase Login Error: {error_message}")
-
+                    st.error(f"❌ Failed to login: {e}")
                     if st.button("Reset Password"):
                         send_password_reset_email(email)
         else:
