@@ -105,22 +105,24 @@ User's responses:
 
 
 def build_image_prompt(insights: str) -> str:
-    
     return f"""
-        Create an artistic, symbolic illustration inspired by a coaching session.
-               
-        Here are the coaching suggestions they received:
-        {insights}
-        
-        Please visualize these ideas through metaphorical or emotional imagery.
-        Style: Soft lighting, serene atmosphere, slightly surreal but optimistic.
-        Avoid text or literal labels. Focus on tone and symbolism.
-        
-        Use colors and objects that represent:
-        - clarity
-        - renewal
-        - strength from within
-        """
+Create a clear and motivating illustration that visually represents a personalized action plan.
+
+Based on the following coaching suggestions:
+{insights}
+
+Please generate an image that helps the user remember and follow through on their next steps.
+
+Include:
+- Visual symbols or scenes that represent each recommended action (e.g. journaling, reaching out, taking rest)
+- An implicit sense of sequence or progression (like a path, timeline, or staircase)
+- Elements tied to specific keywords in the actions (e.g. 'plan', 'support', 'goal', 'energy')
+
+Optionally: You may add **1–3 short readable text labels** (1–2 words each) to anchor key steps — only if they enhance clarity. Avoid long sentences.
+
+Style: Gentle realism or symbolic clarity. Motivational, grounded, and visually clean.
+"""
+
 
 
 def generate_image_from_prompt(prompt_text: str) -> str:
