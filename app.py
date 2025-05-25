@@ -8,7 +8,9 @@ from checkin_utils import (
     show_insights,
     get_demo_checkins,
     generate_openai_feedback,
-    show_demo_coaching
+    show_demo_coaching,
+    build_image_prompt,
+    generate_image_from_prompt
 )
 from openai_score_with_explanation import generate_openai_score
 
@@ -90,6 +92,13 @@ elif mode == "🙋‍♂️ User Mode":
                 with st.spinner("Generating insights..."):
                     insights = generate_openai_feedback(canvas_answers)
                     st.markdown(insights)
+                    # Step 2: Build image prompt
+                    img_prompt = build_image_prompt(insights)
+                    # Step 3: Generate and display image
+                    image_url = generate_image_from_prompt(img_prompt)
+                    if image_url:
+                        st.image(image_url, caption="Your coaching visualization", use_column_width=True)
+
 
                 try:
                     save_checkin(user_email, canvas_answers, score, recommendation=insights)
