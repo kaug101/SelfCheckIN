@@ -99,19 +99,13 @@ User's responses:
     except Exception as e:
         return f"⚠️ OpenAI Error: {str(e)}"
 
-def build_image_prompt(theme_line, emotional_tone, suggestions: list) -> str:
-    suggestions_text = "\n".join([f"- {s}" for s in suggestions])
+def build_image_prompt(insights: str) -> str:
+    
     return f"""
         Create an artistic, symbolic illustration inspired by a coaching session.
-        
-        The theme of the session is:
-        {theme_line}
-        
-        The user's reflections suggest a mood of:
-        {emotional_tone}
-        
+               
         Here are the coaching suggestions they received:
-        {suggestions_text}
+        {insights}
         
         Please visualize these ideas through metaphorical or emotional imagery.
         Style: Soft lighting, serene atmosphere, slightly surreal but optimistic.
@@ -122,6 +116,21 @@ def build_image_prompt(theme_line, emotional_tone, suggestions: list) -> str:
         - renewal
         - strength from within
         """
+
+
+def generate_image_from_prompt(prompt_text: str) -> str:
+    try:
+        client = openai.OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
+        response = client.images.generate(
+            model="dall-e-3",
+            prompt=prompt_text,
+            n=1,
+            size="1024x1024"
+        )
+        return response.data[0].url
+    except Exception as e:
+        st.error(f"❌ Image generation failed: {e}")
+        return ""
 
 def show_insights(df):
     st.subheader("📊 Check-In Score Summary")
