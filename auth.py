@@ -35,7 +35,11 @@ def email_step_authentication():
                 "returnSecureToken": True
             }
             res = requests.post(FIREBASE_REST_SIGNIN_URL, json=dummy_payload)
-            error_message = res.json().get("error", {}).get("message", "")
+            #error_message = res.json().get("error", {}).get("message", "")
+            res_data = res.json()
+            st.write("🔍 Firebase raw response:", res_data)  # <-- DEBUG LINE
+            error_message = res_data.get("error", {}).get("message", "")
+
             if error_message == "INVALID_PASSWORD":
                 firebase_user_exists = True
             elif error_message == "EMAIL_NOT_FOUND":
