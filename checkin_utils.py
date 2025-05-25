@@ -21,14 +21,33 @@ canvas_qs = {
     "Vision": ["What would 'further' look like?", "Even if I don't know the final goal, what feels like the next right step?"]
 }
 
+canvas_help = {
+    "What still excites or matters to me?": "Think about what gives you energy lately — even small sparks.",
+    "If I could only keep one reason to continue, what would it be?": "Try to identify your strongest current source of drive or hope.",
+    "How am I feeling lately - physically, emotionally?": "Check in with your body and mood — are you tired, calm, anxious?",
+    "What restores me? What drains me?": "Mention any recent experiences or habits that energize or deplete you.",
+    "Who's truly in my corner right now?": "Reflect on people who offer real emotional or practical support.",
+    "Where can I get the help I'm missing?": "Name people or systems you could reach out to or wish you had.",
+    "What's something new I've learned recently?": "This could be personal insight, a skill, or lesson — big or small.",
+    "Where am I avoiding challenge or feedback?": "Be honest: are there areas you're playing it safe?",
+    "What would 'further' look like?": "Describe what progress or growth would mean right now — even vaguely.",
+    "Even if I don't know the final goal, what feels like the next right step?": "What’s a small experiment or move that feels meaningful?"
+}
+
 def ask_questions():
     answers = {}
     for section, questions in canvas_qs.items():
         st.markdown(f"#### {section}")
         answers[section] = [
-            st.text_area(q, key=q, max_chars=500, help="Max 100 words (~500 characters)") for q in questions
+            st.text_area(
+                q,
+                key=q,
+                max_chars=500,
+                help=canvas_help.get(q, "Max 100 words (~500 characters)")
+            ) for q in questions
         ]
     return answers
+
 
 def save_checkin(user_email, canvas_answers, score, recommendation=None):
     password = st.session_state.get("user_password", "")
