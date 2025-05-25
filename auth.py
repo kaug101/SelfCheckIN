@@ -47,7 +47,7 @@ def email_step_authentication():
             firebase_user_exists = False
 
         if firebase_user_exists:
-            st.success("✅ User found in Firebase. Please login.")
+            st.success("✅ User found. Please login.")
             password = st.text_input("Password", type="password", key="login_pw")
             if st.button("Login"):
                 login_attempted = True
