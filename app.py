@@ -99,6 +99,9 @@ elif mode == "🙋‍♂️ User Mode":
                     if image_url:
                         #st.image(image_url, caption="Your coaching visualization", use_column_width=True)
                         st.image(image_url, caption="Your coaching visualization", use_container_width=True)
+                        image_with_text = overlay_coaching_text(image_url, insights)
+                        st.image(image_with_text, caption="Your coaching visualization + action plan", use_container_width=True)
+
 
 
 
