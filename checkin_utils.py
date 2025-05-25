@@ -118,6 +118,7 @@ The image should:
 - Use realistic or symbolic visuals 
 - Avoid text 
 - Style: Flat illustration, warm tone, soft colors
+Strictly avoid any form of written or typographic characters. Do not include letters, numbers, signs, or symbolic text.
 
 Purpose: The image should help the user **visually recall** and **stay motivated to follow** their action plan.
 """
