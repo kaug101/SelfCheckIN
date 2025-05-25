@@ -5,6 +5,7 @@ FIREBASE_API_KEY = st.secrets["FIREBASE_API_KEY"]
 FIREBASE_REST_SIGNIN_URL = f"https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key={FIREBASE_API_KEY}"
 FIREBASE_REST_SIGNUP_URL = f"https://identitytoolkit.googleapis.com/v1/accounts:signUp?key={FIREBASE_API_KEY}"
 FIREBASE_REST_RESET_URL = f"https://identitytoolkit.googleapis.com/v1/accounts:sendOobCode?key={FIREBASE_API_KEY}"
+FIREBASE_REST_LOOKUP_URL = f"https://identitytoolkit.googleapis.com/v1/accounts:lookup?key={FIREBASE_API_KEY}"
 
 def send_password_reset_email(email):
     payload = {
@@ -18,35 +19,27 @@ def send_password_reset_email(email):
     except Exception as e:
         st.error(f"❌ Failed to send reset email: {e}")
 
+def firebase_user_exists(email: str) -> bool:
+    try:
+        res = requests.post(FIREBASE_REST_LOOKUP_URL, json={"email": [email]})
+        data = res.json()
+        return "users" in data
+    except Exception as e:
+        st.warning(f"⚠️ Could not check user: {e}")
+        return False
+
 def email_step_authentication():
     email = st.text_input("Enter your email")
 
     authenticated = False
     login_attempted = False
     signup_attempted = False
-    firebase_user_exists = None
+    user_exists = None
 
     if email:
-        # Try login with dummy password to probe user existence
-        try:
-            dummy_payload = {
-                "email": email,
-                "password": "dummy-password",
-                "returnSecureToken": True
-            }
-            res = requests.post(FIREBASE_REST_SIGNIN_URL, json=dummy_payload)
-            error_message = res.json().get("error", {}).get("message", "")
+        user_exists = firebase_user_exists(email)
 
-            if "INVALID" in error_message and "CREDENTIAL" in error_message:
-                firebase_user_exists = True
-            elif error_message == "EMAIL_NOT_FOUND":
-                firebase_user_exists = False
-            else:
-                firebase_user_exists = False
-        except Exception:
-            firebase_user_exists = False
-
-        if firebase_user_exists:
+        if user_exists:
             st.success("✅ User found. Please login.")
             password = st.text_input("Password", type="password", key="login_pw")
             if st.button("Login"):
@@ -88,4 +81,4 @@ def email_step_authentication():
     st.session_state["login_attempted"] = login_attempted
     st.session_state["signup_attempted"] = signup_attempted
 
-    return email if authenticated else None, firebase_user_exists, authenticated
+    return email if authenticated else None, user_exists, authenticated
