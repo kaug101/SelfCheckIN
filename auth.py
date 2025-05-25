@@ -1,4 +1,3 @@
-
 import streamlit as st
 import requests
 
@@ -28,19 +27,19 @@ def email_step_authentication():
     firebase_user_exists = None
 
     if email:
-        payload_check = {
-            "email": email,
-            "password": "wrong-password-check",
-            "returnSecureToken": True
-        }
+        # Try login with dummy password to probe user existence
         try:
-            res = requests.post(FIREBASE_REST_SIGNIN_URL, json=payload_check)
-            res_data = res.json()
-            error_message = res_data.get("error", {}).get("message", "")
-            if error_message == "EMAIL_NOT_FOUND":
-                firebase_user_exists = False
-            elif error_message == "INVALID_PASSWORD":
+            dummy_payload = {
+                "email": email,
+                "password": "dummy-password",
+                "returnSecureToken": True
+            }
+            res = requests.post(FIREBASE_REST_SIGNIN_URL, json=dummy_payload)
+            error_message = res.json().get("error", {}).get("message", "")
+            if error_message == "INVALID_PASSWORD":
                 firebase_user_exists = True
+            elif error_message == "EMAIL_NOT_FOUND":
+                firebase_user_exists = False
             else:
                 firebase_user_exists = False
         except Exception:
