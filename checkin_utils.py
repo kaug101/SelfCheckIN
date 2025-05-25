@@ -43,10 +43,12 @@ def ask_questions():
                 q,
                 key=q,
                 max_chars=500,
-                help=canvas_help.get(q, "Max 100 words (~500 characters)")
+                placeholder=canvas_help.get(q, "Max 100 words (~500 characters)"),
+                help=canvas_help.get(q)
             ) for q in questions
         ]
     return answers
+
 
 
 def save_checkin(user_email, canvas_answers, score, recommendation=None):
