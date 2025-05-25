@@ -13,6 +13,7 @@ from checkin_utils import (
     generate_image_from_prompt
 )
 from openai_score_with_explanation import generate_openai_score
+from checkin_utils import overlay_coaching_text
 
 from delete_user_utils import delete_account_from_firebase, delete_all_user_checkins
 
