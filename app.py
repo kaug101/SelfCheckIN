@@ -91,19 +91,13 @@ elif mode == "🙋‍♂️ User Mode":
                 #st.markdown(f"🧾 *{justification}*")
                 st.subheader("🧠 Coaching Feedback from AI")
                 with st.spinner("Generating insights..."):
-                    score, insights = generate_openai_feedback(canvas_answers)
+                    score, insights, action_items = generate_openai_feedback(canvas_answers)
                     st.markdown(insights)
-                    # Step 2: Build image prompt
                     img_prompt = build_image_prompt(insights)
-                    # Step 3: Generate and display image
                     image_url = generate_image_from_prompt(img_prompt)
                     if image_url:
-                        #st.image(image_url, caption="Your coaching visualization", use_column_width=True)
-                        st.image(image_url, caption="Your coaching visualization", use_container_width=True)
-                        image_with_text = overlay_coaching_text(image_url, insights)
-                        st.image(image_with_text, caption="Your coaching visualization + action plan", use_container_width=True)
-
-
+                        image_with_text = overlay_coaching_text(image_url, action_items)
+                        st.image(image_with_text, caption="Your coaching visualization + key actions", use_container_width=True)
 
 
                 try:
