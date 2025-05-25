@@ -111,14 +111,12 @@ def build_image_prompt(insights: str) -> str:
 Create a clean, flat-style digital illustration that clearly represents a personalized coaching action plan.
 
 The image should:
-- Depict 2 to 3 key steps based on the following coaching suggestions:
+- Depict 3 key steps based on the following coaching suggestions:
 {insights}
 - Show these steps as a vertical or horizontal sequence, like a roadmap or flow
-- For each step, include:
-  • A symbolic scene (e.g. journaling, meeting peers, meditating)
-  • A **large, readable text label (1–3 words max)** like: "Reflect", "Find Support", "Build Resilience"
-- Use realistic or symbolic visuals (plants for growth, paths for progress, etc.)
-- Avoid long text or small blocks of writing
+- For each step, include a symbolic scene   
+- Use realistic or symbolic visuals 
+- Avoid text 
 - Style: Flat illustration, warm tone, soft colors
 
 Purpose: The image should help the user **visually recall** and **stay motivated to follow** their action plan.
