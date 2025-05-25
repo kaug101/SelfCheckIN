@@ -148,40 +148,42 @@ def generate_image_from_prompt(prompt_text: str) -> str:
 
 
 
+from PIL import Image, ImageDraw, ImageFont
+import requests
+from io import BytesIO
+
 def overlay_coaching_text(image_url: str, insights: str) -> Image.Image:
-    # Extract coaching actions from insights block
+    # Parse coaching suggestions
     lines = [line.strip("- ").strip() for line in insights.splitlines() if line.strip().startswith("-")]
 
-    # Load image from URL
+    # Load image
     response = requests.get(image_url)
     img = Image.open(BytesIO(response.content)).convert("RGBA")
 
-    # Prepare to draw text
     draw = ImageDraw.Draw(img)
     width, height = img.size
 
-    # Choose a font (fallback if unavailable)
+    # Try to load a clean font
     try:
-        font = ImageFont.truetype("arial.ttf", size=24)
+        font = ImageFont.truetype("arial.ttf", size=28)
     except:
         font = ImageFont.load_default()
 
-    # Define text position and spacing
-    margin = 40
-    y = height - margin - (len(lines) * 30)
-
-    # Semi-transparent background for text
+    # Draw background strip at top
     overlay = Image.new("RGBA", img.size, (255,255,255,0))
     overlay_draw = ImageDraw.Draw(overlay)
-    overlay_draw.rectangle([0, y - 10, width, y + len(lines)*35], fill=(255,255,255,180))
-    img = Image.alpha_composite(img, overlay)
+    overlay_draw.rectangle([0, 0, width, 40 + 35 * len(lines)], fill=(255, 255, 255, 220))  # White strip
 
-    # Draw each line of coaching text
+    # Draw each line
+    y = 20
     for line in lines:
-        draw.text((margin, y), line, font=font, fill=(0, 0, 0, 255))
+        overlay_draw.text((30, y), line, font=font, fill=(0, 0, 0, 255))  # Black text
         y += 35
 
-    return img.convert("RGB")
+    # Combine
+    combined = Image.alpha_composite(img, overlay)
+
+    return combined.convert("RGB")
 
 
 def show_insights(df):
