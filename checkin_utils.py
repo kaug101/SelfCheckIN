@@ -140,11 +140,22 @@ def generate_image_from_prompt(prompt_text: str) -> str:
         return ""
 
 def show_insights(df):
+    import matplotlib.pyplot as plt
+
     st.subheader("📊 Check-In Score Summary")
     if "date" in df.columns and "score" in df.columns:
         df["date"] = pd.to_datetime(df["date"], errors="coerce")
+        df["score"] = pd.to_numeric(df["score"], errors="coerce")
         df = df.sort_values("date")
-        st.line_chart(df.set_index("date")["score"])
+
+        fig, ax = plt.subplots()
+        ax.plot(df["date"], df["score"], marker='o')
+        ax.set_ylim(1, 25)
+        ax.set_title("Check-In Score Summary")
+        ax.set_xlabel("Date")
+        ax.set_ylabel("Score (1–25)")
+        ax.grid(True)
+        st.pyplot(fig)
 
     if "recommendation" in df.columns and not df["recommendation"].isnull().all():
         latest = df.sort_values("date").iloc[-1]
@@ -153,6 +164,7 @@ def show_insights(df):
 
     with st.expander("📋 Show full check-in details"):
         st.dataframe(df.sort_values(by="date", ascending=False), use_container_width=True)
+
 
 
 def get_demo_checkins(selected_email):
