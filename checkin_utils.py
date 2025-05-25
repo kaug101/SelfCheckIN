@@ -108,19 +108,22 @@ User's responses:
 
 def build_image_prompt(insights: str) -> str:
     return f"""
-Create a clean, flat-style digital illustration infographic that guides the user through their personalized coaching actions.
+Create a clean, flat-style digital illustration that clearly represents a personalized coaching action plan.
 
-Based on these coaching recommendations:
+The image should:
+- Depict 2 to 3 key steps based on the following coaching suggestions:
 {insights}
+- Show these steps as a vertical or horizontal sequence, like a roadmap or flow
+- For each step, include:
+  • A symbolic scene (e.g. journaling, meeting peers, meditating)
+  • A **large, readable text label (1–3 words max)** like: "Reflect", "Find Support", "Build Resilience"
+- Use realistic or symbolic visuals (plants for growth, paths for progress, etc.)
+- Avoid long text or small blocks of writing
+- Style: Flat illustration, warm tone, soft colors
 
-Visualize:
-- A vertical sequence or roadmap showing 2–3 clear actions the user should take
-- Each action shown with a distinct scene (e.g. journaling, speaking to peers, meditating)
-- Short readable text labels (e.g. "Reflect", "Find Support", "Build Resilience")
-- Earth-tone or soft color palette, gentle and motivational tone
-
-Purpose: Help the user visually remember the recommended steps and feel encouraged to follow through.
+Purpose: The image should help the user **visually recall** and **stay motivated to follow** their action plan.
 """
+
 
 
 
