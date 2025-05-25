@@ -97,7 +97,9 @@ elif mode == "🙋‍♂️ User Mode":
                     # Step 3: Generate and display image
                     image_url = generate_image_from_prompt(img_prompt)
                     if image_url:
-                        st.image(image_url, caption="Your coaching visualization", use_column_width=True)
+                        #st.image(image_url, caption="Your coaching visualization", use_column_width=True)
+                        st.image(image_url, caption="Your coaching visualization", use_container_width=True)
+
 
 
                 try:
