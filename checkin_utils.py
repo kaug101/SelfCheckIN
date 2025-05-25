@@ -49,7 +49,7 @@ def load_user_checkins(user_email):
         return df
     return None
 
-def generate_openai_feedback(canvas_answers: dict) -> str:
+def generate_openai_feedback(canvas_answers: dict) -> tuple[int, str]:
     client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
 
     flat_responses = []
@@ -95,9 +95,14 @@ User's responses:
             ],
             temperature=0.7,
         )
-        return response.choices[0].message.content
+        content = response.choices[0].message.content.strip()
+        # Extract the score from the response
+        score_line = next((line for line in content.splitlines() if line.startswith("Score:")), "")
+        score = int("".join([c for c in score_line if c.isdigit()])) if score_line else 0
+        return score, content
     except Exception as e:
-        return f"⚠️ OpenAI Error: {str(e)}"
+        return 0, f"⚠️ OpenAI Error: {str(e)}"
+
 
 def build_image_prompt(insights: str) -> str:
     
