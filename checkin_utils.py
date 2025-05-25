@@ -143,29 +143,67 @@ def generate_image_from_prompt(prompt_text: str) -> str:
 
 def show_insights(df):
     import matplotlib.pyplot as plt
+    from datetime import datetime, timedelta
+    import matplotlib.dates as mdates
 
     st.subheader("📊 Check-In Score Summary")
+
     if "date" in df.columns and "score" in df.columns:
         df["date"] = pd.to_datetime(df["date"], errors="coerce")
         df["score"] = pd.to_numeric(df["score"], errors="coerce")
         df = df.sort_values("date")
 
-        fig, ax = plt.subplots()
-        ax.plot(df["date"], df["score"], marker='o')
+        # User selection for timeframe
+        timeframe = st.selectbox("Show scores for:", ["Last 7 days", "Last 14 days", "Last 30 days", "All time"])
+        days_map = {
+            "Last 7 days": 7,
+            "Last 14 days": 14,
+            "Last 30 days": 30,
+            "All time": None
+        }
+        days = days_map[timeframe]
+        if days:
+            cutoff_date = datetime.now().date() - timedelta(days=days)
+            df_filtered = df[df["date"].dt.date >= cutoff_date]
+        else:
+            df_filtered = df
+
+        # Plot
+        fig, ax = plt.subplots(figsize=(12, 4))
+        ax.plot(df["date"], df["score"], marker='o', linestyle='-', color='gray', alpha=0.3, label="All scores")
+        ax.plot(df_filtered["date"], df_filtered["score"], marker='o', linestyle='-', color='blue', label=f"{timeframe}")
+
+        # Threshold lines
+        ax.axhline(y=10, color='red', linestyle='--', linewidth=1, label='Needs Attention (<10)')
+        ax.axhline(y=20, color='green', linestyle='--', linewidth=1, label='Excellent (≥20)')
+
         ax.set_ylim(1, 25)
         ax.set_title("Check-In Score Summary")
         ax.set_xlabel("Date")
         ax.set_ylabel("Score (1–25)")
+
+        # Format x-axis
+        ax.xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m-%d'))
+        fig.autofmt_xdate(rotation=45)
+
         ax.grid(True)
+        ax.legend()
         st.pyplot(fig)
 
+    # Coaching recommendation
     if "recommendation" in df.columns and not df["recommendation"].isnull().all():
         latest = df.sort_values("date").iloc[-1]
         st.subheader("🧠 Last Coaching Recommendation")
         st.markdown(latest["recommendation"])
 
+    # Full data table
     with st.expander("📋 Show full check-in details"):
-        st.dataframe(df.sort_values(by="date", ascending=False), use_container_width=True)
+        st.dataframe(
+            df.sort_values(by="date", ascending=False).style.format({"date": lambda d: d.strftime("%Y-%m-%d")}),
+            use_container_width=True,
+            height=300
+        )
+
 
 
 
