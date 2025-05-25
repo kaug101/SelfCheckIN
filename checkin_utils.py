@@ -56,7 +56,10 @@ def load_user_checkins(user_email):
         return df
     return None
 
-def generate_openai_feedback(canvas_answers: dict) -> tuple[int, str]:
+def generate_openai_feedback(canvas_answers: dict) -> tuple[int, str, list[str]]:
+    from openai import OpenAI
+    import streamlit as st
+
     client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
 
     flat_responses = []
@@ -103,29 +106,43 @@ User's responses:
             temperature=0.7,
         )
         content = response.choices[0].message.content.strip()
-        # Extract the score from the response
+
+        # Extract score
         score_line = next((line for line in content.splitlines() if line.startswith("Score:")), "")
         score = int("".join([c for c in score_line if c.isdigit()])) if score_line else 0
-        return score, content
+
+        # Extract action lines
+        actions = []
+        capture = False
+        for line in content.splitlines():
+            if line.strip().startswith("Actions:"):
+                capture = True
+                continue
+            if capture:
+                if line.strip().startswith("Theme:"):
+                    break
+                if line.strip().startswith("-"):
+                    actions.append(line.strip("- ").strip())
+
+        return score, content, actions
+
     except Exception as e:
-        return 0, f"⚠️ OpenAI Error: {str(e)}"
+        return 0, f"⚠️ OpenAI Error: {str(e)}", []
 
 
 def build_image_prompt(insights: str) -> str:
     return f"""
 Create a clean, flat-style digital illustration that clearly represents a personalized coaching action plan.
+Purpose: The image should help the user **visually recall** and **stay motivated to follow** their action plan.
 
 The image should:
-- Depict 3 key steps based on the following coaching suggestions:
-{insights}
+- Depict 3 key steps based on the actions from these coaching suggestions: {insights}
 - Show these steps as a vertical or horizontal sequence, like a roadmap or flow
 - For each step, include a symbolic scene   
-- Use realistic or symbolic visuals 
-- Avoid text 
+- Use realistic or symbolic visuals only 
+- Strictly avoid any form of written or typographic characters. Do not include letters, numbers, signs, or symbolic text.
 - Style: Flat illustration, warm tone, soft colors
-Strictly avoid any form of written or typographic characters. Do not include letters, numbers, signs, or symbolic text.
 
-Purpose: The image should help the user **visually recall** and **stay motivated to follow** their action plan.
 """
 
 
@@ -152,9 +169,11 @@ from PIL import Image, ImageDraw, ImageFont
 import requests
 from io import BytesIO
 
-def overlay_coaching_text(image_url: str, insights: str) -> Image.Image:
+def overlay_coaching_text(image_url: str, action_items: list[str]) -> Image.Image:
+
     # Parse coaching suggestions
-    lines = [line.strip("- ").strip() for line in insights.splitlines() if line.strip().startswith("-")]
+    #lines = [line.strip("- ").strip() for line in insights.splitlines() if line.strip().startswith("-")]
+    lines = action_items
 
     # Load image
     response = requests.get(image_url)
