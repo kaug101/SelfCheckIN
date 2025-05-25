@@ -8,6 +8,11 @@ from google_sheet import append_checkin_to_sheet, get_all_checkins
 from checkin_crypto import encrypt_checkin, decrypt_checkin
 from openai import OpenAI
 
+
+from PIL import Image, ImageDraw, ImageFont
+import requests
+from io import BytesIO
+
 canvas_qs = {
     "Motivation": ["What still excites or matters to me?", "If I could only keep one reason to continue, what would it be?"],
     "Energy & Resilience": ["How am I feeling lately - physically, emotionally?", "What restores me? What drains me?"],
@@ -140,6 +145,44 @@ def generate_image_from_prompt(prompt_text: str) -> str:
     except Exception as e:
         st.error(f"❌ Image generation failed: {e}")
         return ""
+
+
+
+def overlay_coaching_text(image_url: str, insights: str) -> Image.Image:
+    # Extract coaching actions from insights block
+    lines = [line.strip("- ").strip() for line in insights.splitlines() if line.strip().startswith("-")]
+
+    # Load image from URL
+    response = requests.get(image_url)
+    img = Image.open(BytesIO(response.content)).convert("RGBA")
+
+    # Prepare to draw text
+    draw = ImageDraw.Draw(img)
+    width, height = img.size
+
+    # Choose a font (fallback if unavailable)
+    try:
+        font = ImageFont.truetype("arial.ttf", size=24)
+    except:
+        font = ImageFont.load_default()
+
+    # Define text position and spacing
+    margin = 40
+    y = height - margin - (len(lines) * 30)
+
+    # Semi-transparent background for text
+    overlay = Image.new("RGBA", img.size, (255,255,255,0))
+    overlay_draw = ImageDraw.Draw(overlay)
+    overlay_draw.rectangle([0, y - 10, width, y + len(lines)*35], fill=(255,255,255,180))
+    img = Image.alpha_composite(img, overlay)
+
+    # Draw each line of coaching text
+    for line in lines:
+        draw.text((margin, y), line, font=font, fill=(0, 0, 0, 255))
+        y += 35
+
+    return img.convert("RGB")
+
 
 def show_insights(df):
     import matplotlib.pyplot as plt
