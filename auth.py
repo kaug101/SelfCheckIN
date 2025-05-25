@@ -66,20 +66,19 @@ def email_step_authentication():
                         send_password_reset_email(email)
         else:
             st.info("🆕 No Firebase account found. Please sign up.")
-            st.text_input("Choose a password", type="password", key="signup_pw")
-            st.text_input("Confirm password", type="password", key="signup_confirm_pw")
+            pw1 = st.text_input("Choose a password", type="password", key="signup_pw")
+            pw2 = st.text_input("Confirm password", type="password", key="signup_confirm_pw")
             if st.button("Sign Up"):
                 signup_attempted = True
-                if st.session_state.get("signup_pw") == st.session_state.get("signup_confirm_pw") and st.session_state.get("signup_pw") != "":
+                if pw1 == pw2 and pw1 != "":
                     try:
-                        password = st.session_state["signup_pw"]
-                        payload = {"email": email, "password": password, "returnSecureToken": True}
+                        payload = {"email": email, "password": pw1, "returnSecureToken": True}
                         res = requests.post(FIREBASE_REST_SIGNUP_URL, json=payload)
                         res.raise_for_status()
                         res_data = res.json()
                         authenticated = True
                         st.session_state["user_email"] = email
-                        st.session_state["user_password"] = password
+                        st.session_state["user_password"] = pw1
                         st.session_state["id_token"] = res_data.get("idToken")
                     except Exception as e:
                         st.error(f"❌ Failed to signup: {e}")
