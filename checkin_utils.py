@@ -108,22 +108,20 @@ User's responses:
 
 def build_image_prompt(insights: str) -> str:
     return f"""
-Create a clear and motivating illustration that visually represents a personalized action plan.
+Create a clean, flat-style digital illustration infographic that guides the user through their personalized coaching actions.
 
-Based on the following coaching suggestions:
+Based on these coaching recommendations:
 {insights}
 
-Please generate an image that helps the user remember and follow through on their next steps.
+Visualize:
+- A vertical sequence or roadmap showing 2–3 clear actions the user should take
+- Each action shown with a distinct scene (e.g. journaling, speaking to peers, meditating)
+- Short readable text labels (e.g. "Reflect", "Find Support", "Build Resilience")
+- Earth-tone or soft color palette, gentle and motivational tone
 
-Include:
-- Visual symbols or scenes that represent each recommended action (e.g. journaling, reaching out, taking rest)
-- An implicit sense of sequence or progression (like a path, timeline, or staircase)
-- Elements tied to specific keywords in the actions (e.g. 'plan', 'support', 'goal', 'energy')
-
-Optionally: You may add **1–3 short readable text labels** (1–2 words each) to anchor key steps — only if they enhance clarity. Avoid long sentences.
-
-Style: Gentle realism or symbolic clarity. Motivational, grounded, and visually clean.
+Purpose: Help the user visually remember the recommended steps and feel encouraged to follow through.
 """
+
 
 
 
