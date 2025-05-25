@@ -84,7 +84,7 @@ elif mode == "🙋‍♂️ User Mode":
                 st.info("🔄 Calculating your dynamic score...")
                 #score = generate_score(canvas_answers)
                 score, justification = generate_openai_score(canvas_answers)
-                st.success(f"✅ Your total score is **{score}/25**")
+                #st.success(f"✅ Your total score is **{score}/25**")
                 st.markdown(f"🧾 *{justification}*")
                 st.subheader("🧠 Coaching Feedback from AI")
                 with st.spinner("Generating insights..."):
