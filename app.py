@@ -81,11 +81,11 @@ elif mode == "🙋‍♂️ User Mode":
         if user_action == "🆕 New Check-In":
             canvas_answers = ask_questions()
             if st.button("Submit and Save Check-In"):
-                st.info("🔄 Calculating your dynamic score...")
+                #st.info("🔄 Calculating your dynamic score...")
                 #score = generate_score(canvas_answers)
-                score, justification = generate_openai_score(canvas_answers)
+                #score, justification = generate_openai_score(canvas_answers)
                 #st.success(f"✅ Your total score is **{score}/25**")
-                st.markdown(f"🧾 *{justification}*")
+                #st.markdown(f"🧾 *{justification}*")
                 st.subheader("🧠 Coaching Feedback from AI")
                 with st.spinner("Generating insights..."):
                     insights = generate_openai_feedback(canvas_answers)
