@@ -8,6 +8,11 @@ from google_sheet import append_checkin_to_sheet, get_all_checkins
 from checkin_crypto import encrypt_checkin, decrypt_checkin
 from openai import OpenAI
 
+
+from PIL import Image, ImageDraw, ImageFont
+import requests
+from io import BytesIO
+
 canvas_qs = {
     "Motivation": ["What still excites or matters to me?", "If I could only keep one reason to continue, what would it be?"],
     "Energy & Resilience": ["How am I feeling lately - physically, emotionally?", "What restores me? What drains me?"],
@@ -16,14 +21,35 @@ canvas_qs = {
     "Vision": ["What would 'further' look like?", "Even if I don't know the final goal, what feels like the next right step?"]
 }
 
+canvas_help = {
+    "What still excites or matters to me?": "Think about what gives you energy lately — even small sparks.",
+    "If I could only keep one reason to continue, what would it be?": "Try to identify your strongest current source of drive or hope.",
+    "How am I feeling lately - physically, emotionally?": "Check in with your body and mood — are you tired, calm, anxious?",
+    "What restores me? What drains me?": "Mention any recent experiences or habits that energize or deplete you.",
+    "Who's truly in my corner right now?": "Reflect on people who offer real emotional or practical support.",
+    "Where can I get the help I'm missing?": "Name people or systems you could reach out to or wish you had.",
+    "What's something new I've learned recently?": "This could be personal insight, a skill, or lesson — big or small.",
+    "Where am I avoiding challenge or feedback?": "Be honest: are there areas you're playing it safe?",
+    "What would 'further' look like?": "Describe what progress or growth would mean right now — even vaguely.",
+    "Even if I don't know the final goal, what feels like the next right step?": "What’s a small experiment or move that feels meaningful?"
+}
+
 def ask_questions():
     answers = {}
     for section, questions in canvas_qs.items():
         st.markdown(f"#### {section}")
         answers[section] = [
-            st.text_area(q, key=q, max_chars=500, help="Max 100 words (~500 characters)") for q in questions
+            st.text_area(
+                q,
+                key=q,
+                max_chars=500,
+                placeholder=canvas_help.get(q, "Max 100 words (~500 characters)"),
+                help=canvas_help.get(q)
+            ) for q in questions
         ]
     return answers
+
+
 
 def save_checkin(user_email, canvas_answers, score, recommendation=None):
     password = st.session_state.get("user_password", "")
@@ -51,7 +77,10 @@ def load_user_checkins(user_email):
         return df
     return None
 
-def generate_openai_feedback(canvas_answers: dict) -> tuple[int, str]:
+def generate_openai_feedback(canvas_answers: dict) -> tuple[int, str, list[str]]:
+    from openai import OpenAI
+    import streamlit as st
+
     client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
 
     flat_responses = []
@@ -98,28 +127,43 @@ User's responses:
             temperature=0.7,
         )
         content = response.choices[0].message.content.strip()
-        # Extract the score from the response
+
+        # Extract score
         score_line = next((line for line in content.splitlines() if line.startswith("Score:")), "")
         score = int("".join([c for c in score_line if c.isdigit()])) if score_line else 0
-        return score, content
+
+        # Extract action lines
+        actions = []
+        capture = False
+        for line in content.splitlines():
+            if line.strip().startswith("Actions:"):
+                capture = True
+                continue
+            if capture:
+                if line.strip().startswith("Theme:"):
+                    break
+                if line.strip().startswith("-"):
+                    actions.append(line.strip("- ").strip())
+
+        return score, content, actions
+
     except Exception as e:
-        return 0, f"⚠️ OpenAI Error: {str(e)}"
+        return 0, f"⚠️ OpenAI Error: {str(e)}", []
 
 
 def build_image_prompt(insights: str) -> str:
     return f"""
 Create a clean, flat-style digital illustration that clearly represents a personalized coaching action plan.
+Purpose: The image should help the user **visually recall** and **stay motivated to follow** their action plan.
 
 The image should:
-- Depict 3 key steps based on the following coaching suggestions:
-{insights}
+- Depict 3 key steps based on the actions from these coaching suggestions: {insights}
 - Show these steps as a vertical or horizontal sequence, like a roadmap or flow
 - For each step, include a symbolic scene   
-- Use realistic or symbolic visuals 
-- Avoid text 
+- Use realistic or symbolic visuals only 
+- Strictly avoid any form of written or typographic characters. Do not include letters, numbers, signs, or symbolic text.
 - Style: Flat illustration, warm tone, soft colors
 
-Purpose: The image should help the user **visually recall** and **stay motivated to follow** their action plan.
 """
 
 
@@ -139,6 +183,48 @@ def generate_image_from_prompt(prompt_text: str) -> str:
     except Exception as e:
         st.error(f"❌ Image generation failed: {e}")
         return ""
+
+
+
+from PIL import Image, ImageDraw, ImageFont
+import requests
+from io import BytesIO
+
+def overlay_coaching_text(image_url: str, action_items: list[str]) -> Image.Image:
+
+    # Parse coaching suggestions
+    #lines = [line.strip("- ").strip() for line in insights.splitlines() if line.strip().startswith("-")]
+    lines = action_items
+
+    # Load image
+    response = requests.get(image_url)
+    img = Image.open(BytesIO(response.content)).convert("RGBA")
+
+    draw = ImageDraw.Draw(img)
+    width, height = img.size
+
+    # Try to load a clean font
+    try:
+        font = ImageFont.truetype("arial.ttf", size=28)
+    except:
+        font = ImageFont.load_default()
+
+    # Draw background strip at top
+    overlay = Image.new("RGBA", img.size, (255,255,255,0))
+    overlay_draw = ImageDraw.Draw(overlay)
+    overlay_draw.rectangle([0, 0, width, 40 + 35 * len(lines)], fill=(255, 255, 255, 220))  # White strip
+
+    # Draw each line
+    y = 20
+    for line in lines:
+        overlay_draw.text((30, y), line, font=font, fill=(0, 0, 0, 255))  # Black text
+        y += 35
+
+    # Combine
+    combined = Image.alpha_composite(img, overlay)
+
+    return combined.convert("RGB")
+
 
 def show_insights(df):
     import matplotlib.pyplot as plt
