@@ -102,12 +102,16 @@ elif mode == "🙋‍♂️ User Mode":
                     st.markdown(insights)
                     # Optional Listen button (icon-style)
                     if st.button("🔊 Listen to Coaching Feedback"):
-                        with st.spinner("🔊 Generating audio..."):
-                            audio_bytes = generate_tts_from_elevenlabs(insights)
-                            if audio_bytes:
-                                st.audio(audio_bytes, format="audio/mp3")
-
-
+                        try:
+                            with st.spinner("🔊 Generating audio..."):
+                                audio_bytes = generate_tts_from_elevenlabs(insights)
+                                if audio_bytes:
+                                    st.audio(audio_bytes, format="audio/mp3")
+                                else:
+                                    st.warning("⚠️ No audio returned.")
+                        except Exception as e:
+                            st.error("🚨 Streamlit failed while playing audio.")
+                            st.code(str(e))
 
                 try:
                     save_checkin(user_email, canvas_answers, score, recommendation=insights)
