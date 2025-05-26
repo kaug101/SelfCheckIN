@@ -101,10 +101,13 @@ elif mode == "🙋‍♂️ User Mode":
                 # Display insights as text first
                     st.markdown(insights)
                     # Optional Listen button (icon-style)
+                    test_text = insights[:400]  # first 400 characters only
+
                     if st.button("🔊 Listen to Coaching Feedback"):
                         try:
                             with st.spinner("🔊 Generating audio..."):
-                                audio_bytes = generate_tts_from_elevenlabs(insights)
+                                #audio_bytes = generate_tts_from_elevenlabs(insights)
+                                audio_bytes = generate_tts_from_elevenlabs(test_text)
                                 if audio_bytes:
                                     st.audio(audio_bytes, format="audio/mp3")
                                 else:
