@@ -85,16 +85,20 @@ elif mode == "🙋‍♂️ User Mode":
         if user_action == "🆕 New Check-In":
             canvas_answers = ask_questions()
         
-            if st.button("Submit"):
+            # Initialize a session flag
+            if "checkin_ready" not in st.session_state:
+                st.session_state["checkin_ready"] = False
+        
+            if st.button("Submit and Generate Coaching"):
                 score, insights, action_items = generate_openai_feedback(canvas_answers)
                 st.session_state["last_checkin"] = {
                     "answers": canvas_answers,
                     "score": score,
                     "insights": insights,
                 }
+                st.session_state["checkin_ready"] = True  # 💡 Trigger flag
         
-            # Phase 2 — if coaching is available
-            if "last_checkin" in st.session_state:
+            if st.session_state.get("checkin_ready"):
                 st.subheader("🧠 Coaching Feedback from AI")
                 st.markdown(st.session_state["last_checkin"]["insights"])
         
@@ -115,7 +119,6 @@ elif mode == "🙋‍♂️ User Mode":
                         st.error("🚨 Exception during playback")
                         st.code(traceback.format_exc(), language="python")
         
-                # Save button (now manual)
                 if st.button("💾 Save This Check-In"):
                     try:
                         save_checkin(
@@ -125,9 +128,10 @@ elif mode == "🙋‍♂️ User Mode":
                             recommendation=st.session_state["last_checkin"]["insights"],
                         )
                         st.success("✅ Check-in successfully saved!")
+                        # Reset session state after save
+                        st.session_state["checkin_ready"] = False
                         del st.session_state["last_checkin"]
                     except Exception as e:
                         import traceback
                         st.error(f"❌ Failed to save check-in: {e}")
                         st.code(traceback.format_exc(), language="python")
-
