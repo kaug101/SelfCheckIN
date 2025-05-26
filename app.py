@@ -111,9 +111,10 @@ elif mode == "🙋‍♂️ User Mode":
                             st.info("📦 Audio bytes received.")
                     
                             if audio_bytes:
-                                st.write(f"Audio byte length: {len(audio_bytes)}")
-                                st.audio(audio_bytes, format="audio/mp3")
-                                st.success("✅ Audio played.")
+                                with open("debug_output.mp3", "wb") as f:
+                                    f.write(audio_bytes)
+                                st.success("✅ Audio saved to file.")
+
                             else:
                                 st.warning("⚠️ No audio returned.")
                         except Exception as e:
