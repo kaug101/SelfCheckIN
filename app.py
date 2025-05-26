@@ -82,51 +82,51 @@ elif mode == "🙋‍♂️ User Mode":
                 st.rerun()
 
         if user_action == "🆕 New Check-In":
-    canvas_answers = ask_questions()
-
-    if st.button("Submit"):
-        score, insights, action_items = generate_openai_feedback(canvas_answers)
-        st.session_state["last_checkin"] = {
-            "answers": canvas_answers,
-            "score": score,
-            "insights": insights,
-        }
-
-    # Phase 2 — if coaching is available
-    if "last_checkin" in st.session_state:
-        st.subheader("🧠 Coaching Feedback from AI")
-        st.markdown(st.session_state["last_checkin"]["insights"])
-
-        if st.button("🔊 Listen to Coaching Feedback"):
-            try:
-                st.info("▶️ Button clicked. Starting audio generation...")
-                with st.spinner("🔊 Generating audio..."):
-                    audio_bytes = generate_tts_from_elevenlabs(
-                        st.session_state["last_checkin"]["insights"]
-                    )
-                if audio_bytes:
-                    st.audio(audio_bytes, format="audio/mp3")
-                    st.success("✅ Audio played.")
-                else:
-                    st.warning("⚠️ No audio returned.")
-            except Exception as e:
-                import traceback
-                st.error("🚨 Exception during playback")
-                st.code(traceback.format_exc(), language="python")
-
-        # Save button (now manual)
-        if st.button("💾 Save This Check-In"):
-            try:
-                save_checkin(
-                    user_email,
-                    st.session_state["last_checkin"]["answers"],
-                    st.session_state["last_checkin"]["score"],
-                    recommendation=st.session_state["last_checkin"]["insights"],
-                )
-                st.success("✅ Check-in successfully saved!")
-                del st.session_state["last_checkin"]
-            except Exception as e:
-                import traceback
-                st.error(f"❌ Failed to save check-in: {e}")
-                st.code(traceback.format_exc(), language="python")
+            canvas_answers = ask_questions()
+        
+            if st.button("Submit"):
+                score, insights, action_items = generate_openai_feedback(canvas_answers)
+                st.session_state["last_checkin"] = {
+                    "answers": canvas_answers,
+                    "score": score,
+                    "insights": insights,
+                }
+        
+            # Phase 2 — if coaching is available
+            if "last_checkin" in st.session_state:
+                st.subheader("🧠 Coaching Feedback from AI")
+                st.markdown(st.session_state["last_checkin"]["insights"])
+        
+                if st.button("🔊 Listen to Coaching Feedback"):
+                    try:
+                        st.info("▶️ Button clicked. Starting audio generation...")
+                        with st.spinner("🔊 Generating audio..."):
+                            audio_bytes = generate_tts_from_elevenlabs(
+                                st.session_state["last_checkin"]["insights"]
+                            )
+                        if audio_bytes:
+                            st.audio(audio_bytes, format="audio/mp3")
+                            st.success("✅ Audio played.")
+                        else:
+                            st.warning("⚠️ No audio returned.")
+                    except Exception as e:
+                        import traceback
+                        st.error("🚨 Exception during playback")
+                        st.code(traceback.format_exc(), language="python")
+        
+                # Save button (now manual)
+                if st.button("💾 Save This Check-In"):
+                    try:
+                        save_checkin(
+                            user_email,
+                            st.session_state["last_checkin"]["answers"],
+                            st.session_state["last_checkin"]["score"],
+                            recommendation=st.session_state["last_checkin"]["insights"],
+                        )
+                        st.success("✅ Check-in successfully saved!")
+                        del st.session_state["last_checkin"]
+                    except Exception as e:
+                        import traceback
+                        st.error(f"❌ Failed to save check-in: {e}")
+                        st.code(traceback.format_exc(), language="python")
 
