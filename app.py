@@ -92,12 +92,21 @@ elif mode == "🙋‍♂️ User Mode":
                 st.subheader("🧠 Coaching Feedback from AI")
                 with st.spinner("Generating insights..."):
                     score, insights, action_items = generate_openai_feedback(canvas_answers)
-                    st.markdown(insights)
+                    #st.markdown(insights)
                     #img_prompt = build_image_prompt(insights)
                     #image_url = generate_image_from_prompt(img_prompt)
                     #if image_url:
                     #    image_with_text = overlay_coaching_text(image_url, action_items)
                     #    st.image(image_with_text, caption="Your coaching visualization + key actions", use_container_width=True)
+                # Display insights as text first
+                    st.markdown(insights)
+                    # Optional Listen button (icon-style)
+                    if st.button("🔊 Listen to Coaching Feedback"):
+                        with st.spinner("🔊 Generating audio..."):
+                            audio_bytes = generate_tts_from_elevenlabs(insights)
+                            if audio_bytes:
+                                st.audio(audio_bytes, format="audio/mp3")
+
 
 
                 try:
