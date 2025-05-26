@@ -101,20 +101,26 @@ elif mode == "🙋‍♂️ User Mode":
                 # Display insights as text first
                     st.markdown(insights)
                     # Optional Listen button (icon-style)
-                    test_text = insights[:400]  # first 400 characters only
+                    test_text = insights[:100]  # first 100 characters only
 
                     if st.button("🔊 Listen to Coaching Feedback"):
                         try:
+                            st.info("▶️ Button clicked. Starting audio generation...")
                             with st.spinner("🔊 Generating audio..."):
-                                #audio_bytes = generate_tts_from_elevenlabs(insights)
                                 audio_bytes = generate_tts_from_elevenlabs(test_text)
-                                if audio_bytes:
-                                    st.audio(audio_bytes, format="audio/mp3")
-                                else:
-                                    st.warning("⚠️ No audio returned.")
+                            st.info("📦 Audio bytes received.")
+                    
+                            if audio_bytes:
+                                st.write(f"Audio byte length: {len(audio_bytes)}")
+                                st.audio(audio_bytes, format="audio/mp3")
+                                st.success("✅ Audio played.")
+                            else:
+                                st.warning("⚠️ No audio returned.")
                         except Exception as e:
-                            st.error("🚨 Streamlit failed while playing audio.")
-                            st.code(str(e))
+                            import traceback
+                            st.error("🚨 Exception caught during TTS or playback.")
+                            st.code(traceback.format_exc(), language="python")
+
 
                 try:
                     save_checkin(user_email, canvas_answers, score, recommendation=insights)
