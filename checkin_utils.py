@@ -290,6 +290,31 @@ def show_insights(df):
         )
 
 
+def generate_tts_from_elevenlabs(text: str, voice_id="Rachel", model="eleven_monolingual_v1") -> str:
+    api_key = st.secrets["ELEVENLABS_API_KEY"]  # Store this in Streamlit secrets
+    url = f"https://api.elevenlabs.io/v1/text-to-speech/{voice_id}"
+
+    headers = {
+        "xi-api-key": api_key,
+        "Content-Type": "application/json"
+    }
+
+    payload = {
+        "model_id": model,
+        "text": text,
+        "voice_settings": {
+            "stability": 0.6,
+            "similarity_boost": 0.8
+        }
+    }
+
+    response = requests.post(url, headers=headers, json=payload)
+    if response.status_code == 200:
+        return response.content  # audio bytes
+    else:
+        st.error(f"❌ TTS failed: {response.text}")
+        return None
+
 
 
 def get_demo_checkins(selected_email):
