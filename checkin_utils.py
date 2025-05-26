@@ -290,7 +290,7 @@ def show_insights(df):
         )
 
 
-def generate_tts_from_elevenlabs(text: str, voice_id="Rachel", model="eleven_monolingual_v1") -> bytes:
+def generate_tts_from_elevenlabs(text: str, voice_id="21m00Tcm4TlvDq8ikWAM", model="eleven_multilingual_v2") -> bytes:
     import traceback
 
     api_key = st.secrets.get("ELEVENLABS_API_KEY")
