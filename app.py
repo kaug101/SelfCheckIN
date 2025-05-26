@@ -89,7 +89,7 @@ elif mode == "🙋‍♂️ User Mode":
             if "checkin_ready" not in st.session_state:
                 st.session_state["checkin_ready"] = False
         
-            if st.button("Submit and Generate Coaching"):
+            if st.button("Submit"):
                 score, insights, action_items = generate_openai_feedback(canvas_answers)
                 st.session_state["last_checkin"] = {
                     "answers": canvas_answers,
@@ -104,14 +104,14 @@ elif mode == "🙋‍♂️ User Mode":
         
                 if st.button("🔊 Listen to Coaching Feedback"):
                     try:
-                        st.info("▶️ Button clicked. Starting audio generation...")
+                        #st.info("▶️ Button clicked. Starting audio generation...")
                         with st.spinner("🔊 Generating audio..."):
                             audio_bytes = generate_tts_from_elevenlabs(
                                 st.session_state["last_checkin"]["insights"]
                             )
                         if audio_bytes:
                             st.audio(audio_bytes, format="audio/mp3")
-                            st.success("✅ Audio played.")
+                            #st.success("✅ Audio played.")
                         else:
                             st.warning("⚠️ No audio returned.")
                     except Exception as e:
