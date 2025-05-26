@@ -10,7 +10,8 @@ from checkin_utils import (
     generate_openai_feedback,
     show_demo_coaching,
     build_image_prompt,
-    generate_image_from_prompt
+    generate_image_from_prompt,
+    generate_tts_from_elevenlabs
 )
 from openai_score_with_explanation import generate_openai_score
 from checkin_utils import overlay_coaching_text
