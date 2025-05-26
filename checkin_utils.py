@@ -290,15 +290,19 @@ def show_insights(df):
         )
 
 
-def generate_tts_from_elevenlabs(text: str, voice_id="Rachel", model="eleven_monolingual_v1") -> str:
-    api_key = st.secrets["ELEVENLABS_API_KEY"]  # Store this in Streamlit secrets
-    url = f"https://api.elevenlabs.io/v1/text-to-speech/{voice_id}"
+def generate_tts_from_elevenlabs(text: str, voice_id="Rachel", model="eleven_monolingual_v1") -> bytes:
+    import traceback
 
+    api_key = st.secrets.get("ELEVENLABS_API_KEY")
+    if not api_key:
+        st.error("❌ ElevenLabs API key missing from secrets.")
+        return None
+
+    url = f"https://api.elevenlabs.io/v1/text-to-speech/{voice_id}"
     headers = {
         "xi-api-key": api_key,
         "Content-Type": "application/json"
     }
-
     payload = {
         "model_id": model,
         "text": text,
@@ -308,11 +312,18 @@ def generate_tts_from_elevenlabs(text: str, voice_id="Rachel", model="eleven_mon
         }
     }
 
-    response = requests.post(url, headers=headers, json=payload)
-    if response.status_code == 200:
-        return response.content  # audio bytes
-    else:
-        st.error(f"❌ TTS failed: {response.text}")
+    try:
+        response = requests.post(url, headers=headers, json=payload)
+        st.info(f"🔧 ElevenLabs API response: {response.status_code}")
+        if response.status_code == 200:
+            st.success("✅ Audio generation succeeded.")
+            return response.content
+        else:
+            st.error(f"❌ Audio generation failed: {response.status_code} - {response.text}")
+            return None
+    except Exception as e:
+        st.error("❌ Exception during TTS call:")
+        st.code(traceback.format_exc(), language="python")
         return None
 
 
