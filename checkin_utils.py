@@ -8,6 +8,9 @@ from google_sheet import append_checkin_to_sheet, get_all_checkins
 from checkin_crypto import encrypt_checkin, decrypt_checkin
 from openai import OpenAI
 
+import json
+import numpy as np
+from sklearn.metrics.pairwise import cosine_similarity
 
 from PIL import Image, ImageDraw, ImageFont
 import requests
@@ -322,3 +325,59 @@ def show_demo_coaching(selected_email):
         st.markdown("- 🔦 **Find Micro-Moments of Joy**  \nMorgan should be encouraged to note 1–2 tiny joys per day. Building emotional scaffolding from joy is a proven recovery tool.")
     else:
         st.warning("No coaching suggestions available.")
+
+
+
+def generate_embedding(text: str) -> list[float]:
+    client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
+    response = client.embeddings.create(
+        input=text,
+        model="text-embedding-3-small"
+    )
+    return response.data[0].embedding
+
+
+def get_top_similar_checkins(current_embedding, past_embeddings, top_k=3):
+    if not past_embeddings:
+        return []
+    sims = cosine_similarity([current_embedding], past_embeddings)[0]
+    top_indices = np.argsort(sims)[-top_k:][::-1]
+    return top_indices
+
+
+# Modify save_checkin to include embedding
+
+def save_checkin(user_email, canvas_answers, score, recommendation=None):
+    password = st.session_state.get("user_password", "")
+    now_str = datetime.now().strftime("%Y-%m-%d %H:%M")
+    flat_text = " ".join(ans for section in canvas_answers.values() for ans in section)
+    embedding = generate_embedding(flat_text)
+
+    entry = {
+        "date": encrypt_checkin(now_str, password, user_email),
+        "user": encrypt_checkin(user_email, password, user_email),
+        "score": encrypt_checkin(str(score), password, user_email),
+        "recommendation": encrypt_checkin(recommendation or "", password, user_email),
+        "embedding": json.dumps(embedding)
+    }
+    for section, answers in canvas_answers.items():
+        entry[f"{section} Q1"] = encrypt_checkin(answers[0], password, user_email)
+        entry[f"{section} Q2"] = encrypt_checkin(answers[1], password, user_email)
+    append_checkin_to_sheet(entry)
+
+
+# Modify load_user_checkins to extract embeddings
+
+def load_user_checkins(user_email):
+    df = get_all_checkins()
+    if df is not None and not df.empty:
+        password = st.session_state.get("user_password", "")
+        df["user_decrypted"] = df["user"].apply(lambda val: decrypt_checkin(val, password, user_email))
+        df = df[df["user_decrypted"] == user_email]
+        for col in df.columns:
+            if col in ("user", "score", "recommendation", "date") or "Q" in col:
+                df[col] = df[col].apply(lambda val: decrypt_checkin(val, password, user_email) if val else "")
+        if "embedding" in df.columns:
+            df["embedding_vector"] = df["embedding"].apply(json.loads)
+        return df
+    return None
