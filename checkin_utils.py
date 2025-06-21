@@ -53,6 +53,25 @@ def ask_questions():
     return answers
 
 
+
+
+
+def build_image_prompt(insights: str) -> str:
+    return f"""
+Create a clean, flat-style digital illustration that clearly represents a personalized coaching action plan.
+Purpose: The image should help the user **visually recall** and **stay motivated to follow** their action plan.
+
+The image should:
+- Depict 3 key steps based on the actions from these coaching suggestions: {insights}
+- Show these steps as a vertical or horizontal sequence, like a roadmap or flow
+- For each step, include a symbolic scene   
+- Use realistic or symbolic visuals only 
+- Strictly avoid any form of written or typographic characters. Do not include letters, numbers, signs, or symbolic text.
+- Style: Flat illustration, warm tone, soft colors
+
+"""
+
+
 def generate_openai_feedback(canvas_answers: dict) -> tuple[int, str]:
     client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
 
@@ -66,11 +85,15 @@ def generate_openai_feedback(canvas_answers: dict) -> tuple[int, str]:
     context_snippets = []
 
     if df is not None and "embedding_vector" in df.columns:
-        top_indices = get_top_similar_checkins(current_embedding, df["embedding_vector"].tolist())
-        for idx in top_indices:
-            row = df.iloc[idx]
-            row_text = " | ".join(str(row.get(f"{section} Q{i}")) for section in canvas_qs for i in [1, 2])
-            context_snippets.append(f"{row['date']}: {row_text}")
+        embedding_tuples = [(i, vec) for i, vec in enumerate(df["embedding_vector"]) if vec is not None]
+        if embedding_tuples:
+            row_indices, vectors = zip(*embedding_tuples)
+            top_indices = get_top_similar_checkins(current_embedding, list(vectors))
+            for rel_idx in top_indices:
+                idx = row_indices[rel_idx]
+                row = df.iloc[idx]
+                row_text = " | ".join(str(row.get(f"{section} Q{i}")) for section in canvas_qs for i in [1, 2])
+                context_snippets.append(f"{row['date']}: {row_text}")
 
     context_block = "\n".join(context_snippets[:3])
 
@@ -126,27 +149,6 @@ Theme: <1-line theme>
         return score, content
     except Exception as e:
         return 0, f"⚠️ OpenAI Error: {str(e)}"
-
-
-
-
-
-def build_image_prompt(insights: str) -> str:
-    return f"""
-Create a clean, flat-style digital illustration that clearly represents a personalized coaching action plan.
-Purpose: The image should help the user **visually recall** and **stay motivated to follow** their action plan.
-
-The image should:
-- Depict 3 key steps based on the actions from these coaching suggestions: {insights}
-- Show these steps as a vertical or horizontal sequence, like a roadmap or flow
-- For each step, include a symbolic scene   
-- Use realistic or symbolic visuals only 
-- Strictly avoid any form of written or typographic characters. Do not include letters, numbers, signs, or symbolic text.
-- Style: Flat illustration, warm tone, soft colors
-
-"""
-
-
 
 
 
@@ -305,6 +307,7 @@ def show_demo_coaching(selected_email):
 
 
 
+
 def generate_embedding(text: str) -> list[float]:
     client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
     response = client.embeddings.create(
@@ -356,10 +359,8 @@ def load_user_checkins(user_email):
                 df[col] = df[col].apply(lambda val: decrypt_checkin(val, password, user_email) if val else "")
         if "embedding" in df.columns:
             df["embedding_vector"] = df["embedding"].apply(lambda x: json.loads(x) if x and x.strip().startswith("[") else None)
-
         return df
     return None
-
 
 
 
