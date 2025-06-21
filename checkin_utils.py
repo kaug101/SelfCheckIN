@@ -355,7 +355,8 @@ def load_user_checkins(user_email):
             if col in ("user", "score", "recommendation", "date") or "Q" in col:
                 df[col] = df[col].apply(lambda val: decrypt_checkin(val, password, user_email) if val else "")
         if "embedding" in df.columns:
-            df["embedding_vector"] = df["embedding"].apply(json.loads)
+            df["embedding_vector"] = df["embedding"].apply(lambda x: json.loads(x) if x and x.strip().startswith("[") else None)
+
         return df
     return None
 
