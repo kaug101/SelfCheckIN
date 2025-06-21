@@ -53,38 +53,26 @@ def ask_questions():
     return answers
 
 
-
-def save_checkin(user_email, canvas_answers, score, recommendation=None):
-    password = st.session_state.get("user_password", "")
-    now_str = datetime.now().strftime("%Y-%m-%d %H:%M")
-    entry = {
-        "date": encrypt_checkin(now_str, password, user_email),
-        "user": encrypt_checkin(user_email, password, user_email),
-        "score": encrypt_checkin(str(score), password, user_email),
-        "recommendation": encrypt_checkin(recommendation or "", password, user_email)
-    }
-    for section, answers in canvas_answers.items():
-        entry[f"{section} Q1"] = encrypt_checkin(answers[0], password, user_email)
-        entry[f"{section} Q2"] = encrypt_checkin(answers[1], password, user_email)
-    append_checkin_to_sheet(entry)
-
-def load_user_checkins(user_email):
-    df = get_all_checkins()
-    if df is not None and not df.empty:
-        password = st.session_state.get("user_password", "")
-        df["user_decrypted"] = df["user"].apply(lambda val: decrypt_checkin(val, password, user_email))
-        df = df[df["user_decrypted"] == user_email]
-        for col in df.columns:
-            if col in ("user", "score", "recommendation", "date") or "Q" in col:
-                df[col] = df[col].apply(lambda val: decrypt_checkin(val, password, user_email) if val else "")
-        return df
-    return None
-
-def generate_openai_feedback(canvas_answers: dict) -> tuple[int, str, list[str]]:
-    from openai import OpenAI
-    import streamlit as st
-
+def generate_openai_feedback(canvas_answers: dict) -> tuple[int, str]:
     client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
+
+    # Prepare current embedding
+    current_text = " ".join(ans for section in canvas_answers.values() for ans in section)
+    current_embedding = generate_embedding(current_text)
+
+    # Load past check-ins with embeddings
+    user_email = st.session_state.get("user_email", "")
+    df = load_user_checkins(user_email)
+    context_snippets = []
+
+    if df is not None and "embedding_vector" in df.columns:
+        top_indices = get_top_similar_checkins(current_embedding, df["embedding_vector"].tolist())
+        for idx in top_indices:
+            row = df.iloc[idx]
+            row_text = " | ".join(str(row.get(f"{section} Q{i}")) for section in canvas_qs for i in [1, 2])
+            context_snippets.append(f"{row['date']}: {row_text}")
+
+    context_block = "\n".join(context_snippets[:3])
 
     flat_responses = []
     for category, responses in canvas_answers.items():
@@ -94,10 +82,16 @@ def generate_openai_feedback(canvas_answers: dict) -> tuple[int, str, list[str]]
     prompt = f"""
 You are a professional human coach known for being warm, insightful, and practical.
 
-A user has completed a daily self-check-in across 5 key life areas: Motivation, Energy & Resilience, Support Systems, Growth Mindset, and Vision.
+The user has completed a new check-in. Use the past check-in context below to enrich your understanding of patterns and history.
+
+Past Check-In Context:
+{context_block}
+
+New Check-In:
+{chr(10).join(flat_responses)}
 
 Your task is to:
-1. Thoughtfully analyze their responses
+1. Thoughtfully analyze the current responses
 2. Assign a score from 1 to 25 based on:
    - Emotional clarity
    - Depth of self-awareness
@@ -115,9 +109,6 @@ Actions:
 - <Personalized suggestion 2>
 - <Optional suggestion 3>
 Theme: <1-line theme>
-
-User's responses:
-{chr(10).join(flat_responses)}
 """
 
     try:
@@ -130,28 +121,14 @@ User's responses:
             temperature=0.7,
         )
         content = response.choices[0].message.content.strip()
-
-        # Extract score
         score_line = next((line for line in content.splitlines() if line.startswith("Score:")), "")
         score = int("".join([c for c in score_line if c.isdigit()])) if score_line else 0
-
-        # Extract action lines
-        actions = []
-        capture = False
-        for line in content.splitlines():
-            if line.strip().startswith("Actions:"):
-                capture = True
-                continue
-            if capture:
-                if line.strip().startswith("Theme:"):
-                    break
-                if line.strip().startswith("-"):
-                    actions.append(line.strip("- ").strip())
-
-        return score, content, actions
-
+        return score, content
     except Exception as e:
-        return 0, f"⚠️ OpenAI Error: {str(e)}", []
+        return 0, f"⚠️ OpenAI Error: {str(e)}"
+
+
+
 
 
 def build_image_prompt(insights: str) -> str:
@@ -381,3 +358,7 @@ def load_user_checkins(user_email):
             df["embedding_vector"] = df["embedding"].apply(json.loads)
         return df
     return None
+
+
+
+
