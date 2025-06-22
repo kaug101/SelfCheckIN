@@ -91,7 +91,7 @@ elif mode == "🙋‍♂️ User Mode":
                 #st.markdown(f"🧾 *{justification}*")
                 st.subheader("🧠 Coaching Feedback from AI")
                 with st.spinner("Generating insights..."):
-                    score, insights, action_items = generate_openai_feedback(canvas_answers)
+                    score, insights = generate_openai_feedback(canvas_answers)
                     st.markdown(insights)
                     #img_prompt = build_image_prompt(insights)
                     #image_url = generate_image_from_prompt(img_prompt)

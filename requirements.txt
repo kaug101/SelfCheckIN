@@ -9,3 +9,4 @@ requests
 matplotlib
 cryptography>=41.0.0
 Pillow
+scikit-learn

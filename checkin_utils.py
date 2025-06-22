@@ -8,6 +8,9 @@ from google_sheet import append_checkin_to_sheet, get_all_checkins
 from checkin_crypto import encrypt_checkin, decrypt_checkin
 from openai import OpenAI
 
+import json
+import numpy as np
+from sklearn.metrics.pairwise import cosine_similarity
 
 from PIL import Image, ImageDraw, ImageFont
 import requests
@@ -51,104 +54,6 @@ def ask_questions():
 
 
 
-def save_checkin(user_email, canvas_answers, score, recommendation=None):
-    password = st.session_state.get("user_password", "")
-    now_str = datetime.now().strftime("%Y-%m-%d %H:%M")
-    entry = {
-        "date": encrypt_checkin(now_str, password, user_email),
-        "user": encrypt_checkin(user_email, password, user_email),
-        "score": encrypt_checkin(str(score), password, user_email),
-        "recommendation": encrypt_checkin(recommendation or "", password, user_email)
-    }
-    for section, answers in canvas_answers.items():
-        entry[f"{section} Q1"] = encrypt_checkin(answers[0], password, user_email)
-        entry[f"{section} Q2"] = encrypt_checkin(answers[1], password, user_email)
-    append_checkin_to_sheet(entry)
-
-def load_user_checkins(user_email):
-    df = get_all_checkins()
-    if df is not None and not df.empty:
-        password = st.session_state.get("user_password", "")
-        df["user_decrypted"] = df["user"].apply(lambda val: decrypt_checkin(val, password, user_email))
-        df = df[df["user_decrypted"] == user_email]
-        for col in df.columns:
-            if col in ("user", "score", "recommendation", "date") or "Q" in col:
-                df[col] = df[col].apply(lambda val: decrypt_checkin(val, password, user_email) if val else "")
-        return df
-    return None
-
-def generate_openai_feedback(canvas_answers: dict) -> tuple[int, str, list[str]]:
-    from openai import OpenAI
-    import streamlit as st
-
-    client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
-
-    flat_responses = []
-    for category, responses in canvas_answers.items():
-        joined = " | ".join(responses)
-        flat_responses.append(f"{category}: {joined}")
-
-    prompt = f"""
-You are a professional human coach known for being warm, insightful, and practical.
-
-A user has completed a daily self-check-in across 5 key life areas: Motivation, Energy & Resilience, Support Systems, Growth Mindset, and Vision.
-
-Your task is to:
-1. Thoughtfully analyze their responses
-2. Assign a score from 1 to 25 based on:
-   - Emotional clarity
-   - Depth of self-awareness
-   - Intentionality
-   - Growth-oriented thinking
-3. Provide a short justification for the score
-4. Share 2–3 specific coaching actions or reflections
-5. Summarize their overall theme or growth direction in one line
-
-Format:
-Score: <number>
-Explanation: <brief explanation>
-Actions:
-- <Personalized suggestion 1>
-- <Personalized suggestion 2>
-- <Optional suggestion 3>
-Theme: <1-line theme>
-
-User's responses:
-{chr(10).join(flat_responses)}
-"""
-
-    try:
-        response = client.chat.completions.create(
-            model="gpt-4-0125-preview",
-            messages=[
-                {"role": "system", "content": "You are a wise and supportive human coach."},
-                {"role": "user", "content": prompt}
-            ],
-            temperature=0.7,
-        )
-        content = response.choices[0].message.content.strip()
-
-        # Extract score
-        score_line = next((line for line in content.splitlines() if line.startswith("Score:")), "")
-        score = int("".join([c for c in score_line if c.isdigit()])) if score_line else 0
-
-        # Extract action lines
-        actions = []
-        capture = False
-        for line in content.splitlines():
-            if line.strip().startswith("Actions:"):
-                capture = True
-                continue
-            if capture:
-                if line.strip().startswith("Theme:"):
-                    break
-                if line.strip().startswith("-"):
-                    actions.append(line.strip("- ").strip())
-
-        return score, content, actions
-
-    except Exception as e:
-        return 0, f"⚠️ OpenAI Error: {str(e)}", []
 
 
 def build_image_prompt(insights: str) -> str:
@@ -167,6 +72,83 @@ The image should:
 """
 
 
+def generate_openai_feedback(canvas_answers: dict) -> tuple[int, str]:
+    client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
+
+    # Prepare current embedding
+    current_text = " ".join(ans for section in canvas_answers.values() for ans in section)
+    current_embedding = generate_embedding(current_text)
+
+    # Load past check-ins with embeddings
+    user_email = st.session_state.get("user_email", "")
+    df = load_user_checkins(user_email)
+    context_snippets = []
+
+    if df is not None and "embedding_vector" in df.columns:
+        embedding_tuples = [(i, vec) for i, vec in enumerate(df["embedding_vector"]) if vec is not None]
+        if embedding_tuples:
+            row_indices, vectors = zip(*embedding_tuples)
+            top_indices = get_top_similar_checkins(current_embedding, list(vectors))
+            for rel_idx in top_indices:
+                idx = row_indices[rel_idx]
+                row = df.iloc[idx]
+                row_text = " | ".join(str(row.get(f"{section} Q{i}")) for section in canvas_qs for i in [1, 2])
+                context_snippets.append(f"{row['date']}: {row_text}")
+
+    context_block = "\n".join(context_snippets[:3])
+
+    flat_responses = []
+    for category, responses in canvas_answers.items():
+        joined = " | ".join(responses)
+        flat_responses.append(f"{category}: {joined}")
+
+    prompt = f"""
+You are a professional human coach known for being warm, insightful, and practical.
+
+The user has completed a new check-in. Use the past check-in context below to enrich your understanding of patterns and history.
+
+Past Check-In Context:
+{context_block}
+
+New Check-In:
+{chr(10).join(flat_responses)}
+
+Your task is to:
+1. Thoughtfully analyze the current responses
+2. Assign a score from 1 to 25 based on:
+   - Emotional clarity
+   - Depth of self-awareness
+   - Intentionality
+   - Growth-oriented thinking
+3. Provide a short justification for the score
+4. Share 2–3 specific coaching actions or reflections
+5. Summarize their overall theme or growth direction in one line
+
+Format:
+Score: <number>
+Explanation: <brief explanation>
+Actions:
+- <Personalized suggestion 1>
+- <Personalized suggestion 2>
+- <Optional suggestion 3>
+Theme: <1-line theme>
+"""
+
+    try:
+        response = client.chat.completions.create(
+            model="gpt-4-0125-preview",
+            messages=[
+                {"role": "system", "content": "You are a wise and supportive human coach."},
+                {"role": "user", "content": prompt}
+            ],
+            temperature=0.7,
+        )
+        content = response.choices[0].message.content.strip()
+        score_line = next((line for line in content.splitlines() if line.startswith("Score:")), "")
+        score = int("".join([c for c in score_line if c.isdigit()])) if score_line else 0
+        return score, content
+    except Exception as e:
+        return 0, f"⚠️ OpenAI Error: {str(e)}"
 
 
 
@@ -322,3 +304,63 @@ def show_demo_coaching(selected_email):
         st.markdown("- 🔦 **Find Micro-Moments of Joy**  \nMorgan should be encouraged to note 1–2 tiny joys per day. Building emotional scaffolding from joy is a proven recovery tool.")
     else:
         st.warning("No coaching suggestions available.")
+
+
+
+
+def generate_embedding(text: str) -> list[float]:
+    client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
+    response = client.embeddings.create(
+        input=text,
+        model="text-embedding-3-small"
+    )
+    return response.data[0].embedding
+
+
+def get_top_similar_checkins(current_embedding, past_embeddings, top_k=3):
+    if not past_embeddings:
+        return []
+    sims = cosine_similarity([current_embedding], past_embeddings)[0]
+    top_indices = np.argsort(sims)[-top_k:][::-1]
+    return top_indices
+
+
+# Modify save_checkin to include embedding
+
+def save_checkin(user_email, canvas_answers, score, recommendation=None):
+    password = st.session_state.get("user_password", "")
+    now_str = datetime.now().strftime("%Y-%m-%d %H:%M")
+    flat_text = " ".join(ans for section in canvas_answers.values() for ans in section)
+    embedding = generate_embedding(flat_text)
+
+    entry = {
+        "date": encrypt_checkin(now_str, password, user_email),
+        "user": encrypt_checkin(user_email, password, user_email),
+        "score": encrypt_checkin(str(score), password, user_email),
+        "recommendation": encrypt_checkin(recommendation or "", password, user_email),
+        "embedding": json.dumps(embedding)
+    }
+    for section, answers in canvas_answers.items():
+        entry[f"{section} Q1"] = encrypt_checkin(answers[0], password, user_email)
+        entry[f"{section} Q2"] = encrypt_checkin(answers[1], password, user_email)
+    append_checkin_to_sheet(entry)
+
+
+# Modify load_user_checkins to extract embeddings
+
+def load_user_checkins(user_email):
+    df = get_all_checkins()
+    if df is not None and not df.empty:
+        password = st.session_state.get("user_password", "")
+        df["user_decrypted"] = df["user"].apply(lambda val: decrypt_checkin(val, password, user_email))
+        df = df[df["user_decrypted"] == user_email]
+        for col in df.columns:
+            if col in ("user", "score", "recommendation", "date") or "Q" in col:
+                df[col] = df[col].apply(lambda val: decrypt_checkin(val, password, user_email) if val else "")
+        if "embedding" in df.columns:
+            df["embedding_vector"] = df["embedding"].apply(lambda x: json.loads(x) if x and x.strip().startswith("[") else None)
+        return df
+    return None
+
+
+
