@@ -10,7 +10,8 @@ from checkin_utils import (
     generate_openai_feedback,
     show_demo_coaching,
     build_image_prompt,
-    generate_image_from_prompt
+    generate_image_from_prompt,
+    reflect_on_last_action
 )
 from openai_score_with_explanation import generate_openai_score
 from checkin_utils import overlay_coaching_text
@@ -61,6 +62,8 @@ elif mode == "🙋‍♂️ User Mode":
         df = load_user_checkins(user_email)
         if df is not None and not df.empty:
             #user_action = st.radio("Choose Action", ["New Check-In", "View Past Insights", "Delete My Account"]) #st.selectbox("What would you like to do?", ("📈 View Past Insights", "🆕 New Check-In"))
+             # Reflect on last coaching actions
+            reflect_on_last_action(df)
             user_action = st.radio("Choose Action", ["🆕 New Check-In", "📈 View Past Insights", "🗑 Delete My Account"])
 
 

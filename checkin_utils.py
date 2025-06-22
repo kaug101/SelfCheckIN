@@ -364,3 +364,19 @@ def load_user_checkins(user_email):
 
 
 
+def reflect_on_last_action(df):
+    if df is not None and not df.empty:
+        latest = df.sort_values("date").iloc[-1]
+        last_reco = latest.get("recommendation", "")
+        st.info("📌 Here's a reminder of your last coaching action plan:")
+        st.markdown(last_reco)
+
+        rating = st.slider(
+            "How well were you able to follow through with this?",
+            min_value=1,
+            max_value=5,
+            value=3,
+            format="%d 🌟"
+        )
+
+        st.session_state["last_action_rating"] = rating
