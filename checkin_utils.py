@@ -16,45 +16,103 @@ from PIL import Image, ImageDraw, ImageFont
 import requests
 from io import BytesIO
 
-canvas_qs = {
-    "Motivation": ["What still excites or matters to me?", "If I could only keep one reason to continue, what would it be?"],
-    "Energy & Resilience": ["How am I feeling lately - physically, emotionally?", "What restores me? What drains me?"],
-    "Support Systems": ["Who's truly in my corner right now?", "Where can I get the help I'm missing?"],
-    "Growth Mindset": ["What's something new I've learned recently?", "Where am I avoiding challenge or feedback?"],
-    "Vision": ["What would 'further' look like?", "Even if I don't know the final goal, what feels like the next right step?"]
+import random
+
+# 🎯 Playful growth-mindset question pool
+canvas_qs_pool = {
+    "Motivation": [
+        "What tiny thing still lights a spark in you?",
+        "If your life had a trailer, what scene would you keep in?",
+        "What’s keeping you curious lately?",
+        "When did you last feel like, ‘heck yes!’?",
+        "What would you do tomorrow even if no one noticed?"
+    ],
+    "Energy & Resilience": [
+        "Are you running on espresso, fumes, or vibes?",
+        "What’s been your emotional battery percentage this week?",
+        "What people, snacks, or activities recharge you?",
+        "What's been draining your inner superhero powers?",
+        "If you had a ‘low energy’ warning light, would it be on?"
+    ],
+    "Support Systems": [
+        "Who’s your ride-or-die this week?",
+        "If you had a lifeline, who would you call?",
+        "Any unsung heroes you want to thank?",
+        "Are you asking for help or trying to solo everything?",
+        "Who deserves a coffee for being there?"
+    ],
+    "Growth Mindset": [
+        "What’s something new you messed up — and learned from?",
+        "When did you last surprise yourself?",
+        "Where are you quietly leveling up?",
+        "Any feedback you dodged (but kind of needed)?",
+        "What's one awkward thing you’re doing to grow?"
+    ],
+    "Vision": [
+        "What would ‘Level 2’ of your life look like?",
+        "Even without the full map, what’s the next step?",
+        "What future version of you would fist bump you today?",
+        "What are you daydreaming about these days?",
+        "If your purpose was a playlist, what song just got added?"
+    ]
 }
 
+# 📝 Contextual help for each question
 canvas_help = {
-    "What still excites or matters to me?": "Think about what gives you energy lately — even small sparks.",
-    "If I could only keep one reason to continue, what would it be?": "Try to identify your strongest current source of drive or hope.",
-    "How am I feeling lately - physically, emotionally?": "Check in with your body and mood — are you tired, calm, anxious?",
-    "What restores me? What drains me?": "Mention any recent experiences or habits that energize or deplete you.",
-    "Who's truly in my corner right now?": "Reflect on people who offer real emotional or practical support.",
-    "Where can I get the help I'm missing?": "Name people or systems you could reach out to or wish you had.",
-    "What's something new I've learned recently?": "This could be personal insight, a skill, or lesson — big or small.",
-    "Where am I avoiding challenge or feedback?": "Be honest: are there areas you're playing it safe?",
-    "What would 'further' look like?": "Describe what progress or growth would mean right now — even vaguely.",
-    "Even if I don't know the final goal, what feels like the next right step?": "What’s a small experiment or move that feels meaningful?"
+    "What tiny thing still lights a spark in you?": "Think small — even a funny meme, warm tea, or unfinished idea counts.",
+    "If your life had a trailer, what scene would you keep in?": "What recent moment felt ‘so you’ or gave your story momentum?",
+    "What’s keeping you curious lately?": "Name anything you keep coming back to — a topic, project, mystery.",
+    "When did you last feel like, ‘heck yes!’?": "Capture a moment of alignment, excitement, or even wild spontaneity.",
+    "What would you do tomorrow even if no one noticed?": "What action would still feel worthwhile — even in secret?",
+
+    "Are you running on espresso, fumes, or vibes?": "Be honest — your internal battery status matters more than your to-do list.",
+    "What’s been your emotional battery percentage this week?": "Try a number or describe it: charged, drained, blinking red?",
+    "What people, snacks, or activities recharge you?": "List your go-to power-ups — silly, serious, or unexpected.",
+    "What's been draining your inner superhero powers?": "Where have you been leaking energy, even subtly?",
+    "If you had a ‘low energy’ warning light, would it be on?": "Any warning signs you’ve been trying to ignore?",
+
+    "Who’s your ride-or-die this week?": "Who’s shown up for you — practically or emotionally?",
+    "If you had a lifeline, who would you call?": "Think of someone who makes you feel safer or stronger.",
+    "Any unsung heroes you want to thank?": "Mention the folks who helped you (even without knowing it).",
+    "Are you asking for help or trying to solo everything?": "Have you been open or secretly juggling it all?",
+    "Who deserves a coffee for being there?": "Who showed up in a way you want to acknowledge?",
+
+    "What’s something new you messed up — and learned from?": "Own the goof — and the wisdom you squeezed from it.",
+    "When did you last surprise yourself?": "Describe a moment that made you think, ‘Whoa, did I just do that?’",
+    "Where are you quietly leveling up?": "Even if no one sees it — where are you growing?",
+    "Any feedback you dodged (but kind of needed)?": "Time to admit it — what feedback still lingers?",
+    "What's one awkward thing you’re doing to grow?": "Growth is often messy — name your current beautiful mess.",
+
+    "What would ‘Level 2’ of your life look like?": "Paint a picture of your next evolution — vague is okay.",
+    "Even without the full map, what’s the next step?": "Tiny moves forward count. What feels like progress today?",
+    "What future version of you would fist bump you today?": "Who are you becoming — and would they be proud?",
+    "What are you daydreaming about these days?": "Fantasies and vague pulls often signal buried desires.",
+    "If your purpose was a playlist, what song just got added?": "Pick a vibe or track that reflects your current direction."
 }
 
+# 🎨 Choose 2 random questions per section
+def get_dynamic_questions():
+    return {
+        section: random.sample(questions, 2)
+        for section, questions in canvas_qs_pool.items()
+    }
+
+# 🧠 Form logic with specific help
 def ask_questions():
     answers = {}
-    for section, questions in canvas_qs.items():
+    dynamic_qs = get_dynamic_questions()
+    for section, questions in dynamic_qs.items():
         st.markdown(f"#### {section}")
         answers[section] = [
             st.text_area(
                 q,
                 key=q,
                 max_chars=500,
-                placeholder=canvas_help.get(q, "Max 100 words (~500 characters)"),
-                help=canvas_help.get(q)
+                placeholder=canvas_help.get(q, "Just be honest — even rough thoughts count."),
+                help=canvas_help.get(q, "")
             ) for q in questions
         ]
     return answers
-
-
-
-
 
 def build_image_prompt(insights: str) -> str:
     return f"""
