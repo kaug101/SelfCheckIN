@@ -151,7 +151,7 @@ def generate_openai_feedback(canvas_answers: dict) -> tuple[int, str]:
             for rel_idx in top_indices:
                 idx = row_indices[rel_idx]
                 row = df.iloc[idx]
-                row_text = " | ".join(str(row.get(f"{section} Q{i}")) for section in canvas_qs_pool for i in [1, 2])
+                row_text = " | ".join(str(row.get(f"{section} Q{i}")) for section in canvas_qs for i in [1, 2])
                 context_snippets.append(f"{row['date']}: {row_text}")
 
     context_block = "\n".join(context_snippets[:3])
@@ -160,6 +160,7 @@ def generate_openai_feedback(canvas_answers: dict) -> tuple[int, str]:
     for category, responses in canvas_answers.items():
         joined = " | ".join(responses)
         flat_responses.append(f"{category}: {joined}")
+    flat_response_block = "\n".join(flat_responses)
 
     prompt = f"""
 You are a professional human coach known for being warm, insightful, and practical.
@@ -176,7 +177,7 @@ Past Check-In Context:
 {context_block}
 
 New Check-In:
-{joined flat_responses}
+{flat_response_block}
 
 Your task is to:
 1. Thoughtfully analyze the current responses
@@ -194,10 +195,9 @@ Score: <number>
 Explanation: <brief explanation>
 Actions:
 - <Actionable suggestion 1> (max 12 words)
-- <Actionable suggestion 2> (max 12 words)
-- <Optional suggestion 3> (max 12 words)
+- <Actionable suggestion 2>
+- <Optional suggestion 3>
 Theme: <1-line theme>
-
 """
 
     try:
@@ -215,7 +215,6 @@ Theme: <1-line theme>
         return score, content
     except Exception as e:
         return 0, f"⚠️ OpenAI Error: {str(e)}"
-
 
 
 def generate_image_from_prompt(prompt_text: str) -> str:
