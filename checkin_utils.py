@@ -151,7 +151,7 @@ def generate_openai_feedback(canvas_answers: dict) -> tuple[int, str]:
             for rel_idx in top_indices:
                 idx = row_indices[rel_idx]
                 row = df.iloc[idx]
-                row_text = " | ".join(str(row.get(f"{section} Q{i}")) for section in canvas_qs for i in [1, 2])
+                row_text = " | ".join(str(row.get(f"{section} Q{i}")) for section in canvas_qs_pool for i in [1, 2])
                 context_snippets.append(f"{row['date']}: {row_text}")
 
     context_block = "\n".join(context_snippets[:3])
