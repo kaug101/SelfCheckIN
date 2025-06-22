@@ -164,13 +164,19 @@ def generate_openai_feedback(canvas_answers: dict) -> tuple[int, str]:
     prompt = f"""
 You are a professional human coach known for being warm, insightful, and practical.
 
+Your style should be:
+- Warm, supportive, and emotionally intelligent
+- Encourage progress gently, never criticize
+- Speak like a trusted coach who believes in the user's potential
+- Use clear, concise language
+
 The user has completed a new check-in. Use the past check-in context below to enrich your understanding of patterns and history.
 
 Past Check-In Context:
 {context_block}
 
 New Check-In:
-{chr(10).join(flat_responses)}
+{joined flat_responses}
 
 Your task is to:
 1. Thoughtfully analyze the current responses
@@ -180,17 +186,18 @@ Your task is to:
    - Intentionality
    - Growth-oriented thinking
 3. Provide a short justification for the score
-4. Share 2–3 specific coaching actions or reflections
+4. Share 2–3 concise, actionable coaching suggestions (max 12 words each)
 5. Summarize their overall theme or growth direction in one line
 
 Format:
 Score: <number>
 Explanation: <brief explanation>
 Actions:
-- <Personalized suggestion 1>
-- <Personalized suggestion 2>
-- <Optional suggestion 3>
+- <Actionable suggestion 1> (max 12 words)
+- <Actionable suggestion 2> (max 12 words)
+- <Optional suggestion 3> (max 12 words)
 Theme: <1-line theme>
+
 """
 
     try:
