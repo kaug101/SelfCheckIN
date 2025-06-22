@@ -90,17 +90,18 @@ canvas_help = {
     "If your purpose was a playlist, what song just got added?": "Pick a vibe or track that reflects your current direction."
 }
 
-# 🎨 Choose 2 random questions per section
-def get_dynamic_questions():
-    return {
-        section: random.sample(questions, 2)
-        for section, questions in canvas_qs_pool.items()
-    }
 
-# 🧠 Form logic with specific help
+def get_dynamic_questions_once():
+    if "dynamic_qs" not in st.session_state:
+        st.session_state["dynamic_qs"] = {
+            section: random.sample(questions, 2)
+            for section, questions in canvas_qs_pool.items()
+        }
+    return st.session_state["dynamic_qs"]
+
 def ask_questions():
     answers = {}
-    dynamic_qs = get_dynamic_questions()
+    dynamic_qs = get_dynamic_questions_once()
     for section, questions in dynamic_qs.items():
         st.markdown(f"#### {section}")
         answers[section] = [
