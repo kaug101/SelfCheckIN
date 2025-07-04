@@ -220,17 +220,19 @@ Theme: <1-line theme>
 
 def generate_image_from_prompt(prompt_text: str) -> str:
     try:
-        client = openai.OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
-        response = client.images.generate(
-            model="dall-e-3",
-            prompt=prompt_text,
-            n=1,
-            size="1024x1024"
+        client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
+        response = client.chat.completions.create(
+            model="gpt-image-1",
+            messages=[
+                {"role": "user", "content": prompt_text}
+            ],
+            response_format="image"
         )
-        return response.data[0].url
+        return response.choices[0].message.image_url
     except Exception as e:
-        st.error(f"❌ Image generation failed: {e}")
+        st.error(f"❌ GPT-Image-1 generation failed: {e}")
         return ""
+
 
 
 
