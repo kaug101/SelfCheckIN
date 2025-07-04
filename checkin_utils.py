@@ -202,7 +202,8 @@ Theme: <1-line theme>
 
     try:
         response = client.chat.completions.create(
-            model="gpt-4o",
+            #model="gpt-4o",
+            model="o3",
             messages=[
                 {"role": "system", "content": "You are a wise and supportive human coach."},
                 {"role": "user", "content": prompt}
