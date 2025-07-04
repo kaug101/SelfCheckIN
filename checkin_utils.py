@@ -208,7 +208,7 @@ Theme: <1-line theme>
                 {"role": "system", "content": "You are a wise and supportive human coach."},
                 {"role": "user", "content": prompt}
             ],
-            temperature=0.7,
+            temperature=1,
         )
         content = response.choices[0].message.content.strip()
         score_line = next((line for line in content.splitlines() if line.startswith("Score:")), "")
