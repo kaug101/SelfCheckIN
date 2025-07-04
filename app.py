@@ -96,9 +96,10 @@ elif mode == "🙋‍♂️ User Mode":
                 with st.spinner("Generating insights..."):
                     score, insights = generate_openai_feedback(canvas_answers)
                     st.markdown(insights)
-                    #img_prompt = build_image_prompt(insights)
-                    #image_url = generate_image_from_prompt(img_prompt)
-                    #if image_url:
+                    img_prompt = build_image_prompt(insights)
+                    image_url = generate_image_from_prompt(img_prompt)
+                    if image_url:
+                        st.image(image_url, caption="🖼️ Coaching Visualization", use_container_width=True)
                     #    image_with_text = overlay_coaching_text(image_url, action_items)
                     #    st.image(image_with_text, caption="Your coaching visualization + key actions", use_container_width=True)
 
