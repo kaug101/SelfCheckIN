@@ -226,13 +226,12 @@ def generate_image_from_prompt(prompt_text: str) -> str:
             messages=[
                 {"role": "user", "content": prompt_text}
             ],
-            response_format="image"
+            response_format={"type": "image"}
         )
         return response.choices[0].message.image_url
     except Exception as e:
         st.error(f"❌ GPT-Image-1 generation failed: {e}")
         return ""
-
 
 
 
