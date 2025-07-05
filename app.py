@@ -100,6 +100,9 @@ elif mode == "🙋‍♂️ User Mode":
                     image_url = generate_image_from_prompt(img_prompt)
                     if image_url:
                         st.image(image_url, caption="🖼️ Coaching Visualization", use_container_width=True)
+                    else:
+                        st.warning("⚠️ Image could not be loaded.")
+
                     #    image_with_text = overlay_coaching_text(image_url, action_items)
                     #    st.image(image_with_text, caption="Your coaching visualization + key actions", use_container_width=True)
 
