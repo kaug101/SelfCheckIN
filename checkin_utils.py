@@ -214,7 +214,11 @@ Theme: <1-line theme>
         response = client.responses.create(
             prompt={
                 "id": "pmpt_686a1320f7208197b3b9c1e3db21a9b905b22937c6ad5b45",
-                "version": "1"
+                "version": "1",
+                "input": {
+                    "context_block": context_block,
+                    "flat_response_block": flat_response_block
+                }
             }
         )
         #content = response.choices[0].message.content.strip()
