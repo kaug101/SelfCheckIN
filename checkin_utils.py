@@ -217,7 +217,8 @@ Theme: <1-line theme>
                 "version": "1"
             }
         )
-        content = response.choices[0].message.content.strip()
+        #content = response.choices[0].message.content.strip()
+        content = response.content.strip()
         score_line = next((line for line in content.splitlines() if line.startswith("Score:")), "")
         score = int("".join([c for c in score_line if c.isdigit()])) if score_line else 0
         return score, content
