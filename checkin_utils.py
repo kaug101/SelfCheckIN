@@ -224,7 +224,10 @@ Theme: <1-line theme>
 
         score_line = next((line for line in content.splitlines() if line.startswith("Score:")), "")
         score = int("".join([c for c in score_line if c.isdigit()])) if score_line else 0
-        print(response_dict)
+
+        st.write(response_dict)
+        st.write(content)
+
         return score, content
     except Exception as e:
         return 0, f"⚠️ OpenAI Error: {str(e)}"
