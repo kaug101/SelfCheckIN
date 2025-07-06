@@ -218,7 +218,10 @@ Theme: <1-line theme>
             }
         )
         #content = response.choices[0].message.content.strip()
-        content = response.content.strip()
+        #content = response.content.strip()
+        response_dict = response.model_dump()
+        content = response_dict.get("content", "").strip()
+
         score_line = next((line for line in content.splitlines() if line.startswith("Score:")), "")
         score = int("".join([c for c in score_line if c.isdigit()])) if score_line else 0
         return score, content
