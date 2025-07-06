@@ -200,7 +200,7 @@ Actions:
 Theme: <1-line theme>
 """
 
-    try:
+    try:    
         #response = client.chat.completions.create(
             #model="gpt-4o",
             #model="o3",
@@ -219,16 +219,30 @@ Theme: <1-line theme>
         )
         #content = response.choices[0].message.content.strip()
         #content = response.content.strip()
+        #response_dict = response.model_dump()
+        #content = response_dict.get("content", "").strip()
+
+        #score_line = next((line for line in content.splitlines() if line.startswith("Score:")), "")
+        #score = int("".join([c for c in score_line if c.isdigit()])) if score_line else 0
+
+        #st.write(response_dict)
+        #st.write(content)
         response_dict = response.model_dump()
-        content = response_dict.get("content", "").strip()
+        # Extract the main output text
+        output_blocks = response_dict.get("output", [])
+        if output_blocks and "content" in output_blocks[0]:
+            content_blocks = output_blocks[0]["content"]
+            full_text = "".join(block.get("text", "") for block in content_blocks).strip()
 
-        score_line = next((line for line in content.splitlines() if line.startswith("Score:")), "")
-        score = int("".join([c for c in score_line if c.isdigit()])) if score_line else 0
+            # Extract the score
+            score_line = next((line for line in full_text.splitlines() if line.startswith("Score:")), "")
+            score = int("".join([c for c in score_line if c.isdigit()])) if score_line else 0
 
-        st.write(response_dict)
-        st.write(content)
+            return score, full_text
+        else:
+            raise ValueError("⚠️ Output content not found in response")
 
-        return score, content
+
     except Exception as e:
         return 0, f"⚠️ OpenAI Error: {str(e)}"
 
