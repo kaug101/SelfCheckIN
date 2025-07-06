@@ -201,14 +201,21 @@ Theme: <1-line theme>
 """
 
     try:
-        response = client.chat.completions.create(
+        #response = client.chat.completions.create(
             #model="gpt-4o",
-            model="o3",
-            messages=[
-                {"role": "system", "content": "You are a wise and supportive human coach."},
-                {"role": "user", "content": prompt}
-            ],
-            temperature=1,
+            #model="o3",
+            #messages=[
+                #{"role": "system", "content": "You are a wise and supportive human coach."},
+                #{"role": "user", "content": prompt}
+            #],
+            #temperature=1,
+        #)
+        client = OpenAI()
+        response = client.responses.create(
+            prompt={
+                "id": "pmpt_686a1320f7208197b3b9c1e3db21a9b905b22937c6ad5b45",
+                "version": "1"
+            }
         )
         content = response.choices[0].message.content.strip()
         score_line = next((line for line in content.splitlines() if line.startswith("Score:")), "")
