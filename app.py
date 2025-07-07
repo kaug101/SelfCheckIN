@@ -1,5 +1,8 @@
 import streamlit as st
-from auth import email_step_authentication
+from auth import ( 
+    email_step_authentication,
+    send_password_reset_email
+)
 from checkin_utils import (
     ask_questions,
     #generate_score,
