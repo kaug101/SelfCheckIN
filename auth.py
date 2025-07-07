@@ -64,7 +64,7 @@ def email_step_authentication():
                     st.session_state["id_token"] = res_data.get("idToken")
                 except Exception as e:
                     st.error(f"❌ Login failed")
-                    login_failed = True
+                    st.session_state["login_failed"] = True
             
             if st.session_state.get("login_failed", False):
                 if st.button("Reset Password"):
