@@ -7,7 +7,7 @@ FIREBASE_REST_SIGNUP_URL = f"https://identitytoolkit.googleapis.com/v1/accounts:
 FIREBASE_REST_RESET_URL = f"https://identitytoolkit.googleapis.com/v1/accounts:sendOobCode?key={FIREBASE_API_KEY}"
 
 def send_password_reset_email(email):
-    st.info("🔧 Reset password function was entered.")
+    #st.info("🔧 Reset password function was entered.")
     if not email:
         st.error("⚠️ No email provided. Please enter your email first.")
         return
@@ -16,6 +16,7 @@ def send_password_reset_email(email):
     try:
         res = requests.post(FIREBASE_REST_RESET_URL, json=payload)
         data = res.json()
+        st.write("firebase data",data)
         if "error" in data:
             st.error(f"❌ Firebase error: {data['error']['message']}")
         else:
@@ -63,7 +64,7 @@ def email_step_authentication():
             
             if st.session_state.get("login_failed", False):
                 if st.button("Reset Password"):
-                    st.info("🔧 Reset password session state was changed.")
+                    #st.info("🔧 Reset password session state was changed.")
                     st.session_state["reset_password_clicked"] = True
             
 
