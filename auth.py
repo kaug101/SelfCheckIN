@@ -30,12 +30,7 @@ def email_step_authentication():
 
     #st.write("Session State:", dict(st.session_state))
 
-    if st.session_state.get("reset_password_clicked", False):
-        email_to_use = st.session_state.get("temp_email", "")
-        st.write("🔧 Reset password function was triggered.")
-        send_password_reset_email(email_to_use)
-        # Reset the flag so it doesn't run again on next rerun
-        st.session_state["reset_password_clicked"] = False
+
 
 
     email = st.text_input("Enter your email")
