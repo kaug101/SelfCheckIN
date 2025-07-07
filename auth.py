@@ -27,6 +27,12 @@ def email_step_authentication():
     authenticated = False
     login_attempted = False
     signup_attempted = False
+    if st.session_state.get("reset_password_clicked", False):
+    email_to_use = st.session_state.get("temp_email", "")
+    send_password_reset_email(email_to_use)
+    # Reset the flag so it doesn't run again on next rerun
+    st.session_state["reset_password_clicked"] = False
+
 
     email = st.text_input("Enter your email")
 
@@ -56,7 +62,10 @@ def email_step_authentication():
             
             if login_failed:
                 if st.button("Reset Password"):
-                    send_password_reset_email(st.session_state.get("temp_email", ""))
+                    st.session_state["reset_password_clicked"] = True
+            
+
+                    
 
         elif auth_mode == "🆕 Sign Up":
             pw1 = st.text_input("Choose a password", type="password", key="signup_pw1")
