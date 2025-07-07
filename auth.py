@@ -48,11 +48,11 @@ def email_step_authentication():
     if email:
         if auth_mode == "🔓 Login":
             password = st.text_input("Password", type="password", key="login_pw")
-            login_failed = False
+            
             
             if st.button("Login"):
                 login_attempted = True
-                
+                st.session_state["login_failed"] = False
                 try:
                     payload = {"email": email, "password": password, "returnSecureToken": True}
                     res = requests.post(FIREBASE_REST_SIGNIN_URL, json=payload)
@@ -66,7 +66,7 @@ def email_step_authentication():
                     st.error(f"❌ Login failed")
                     login_failed = True
             
-            if login_failed:
+            if st.session_state.get("login_failed", False):
                 if st.button("Reset Password"):
                     st.info("🔧 Reset password session state was changed.")
                     st.session_state["reset_password_clicked"] = True
