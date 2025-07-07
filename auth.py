@@ -28,7 +28,7 @@ def email_step_authentication():
     login_attempted = False
     signup_attempted = False
 
-    st.write("Session State:", dict(st.session_state))
+    #st.write("Session State:", dict(st.session_state))
 
     if st.session_state.get("reset_password_clicked", False):
         email_to_use = st.session_state.get("temp_email", "")
