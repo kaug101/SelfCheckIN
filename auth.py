@@ -7,6 +7,7 @@ FIREBASE_REST_SIGNUP_URL = f"https://identitytoolkit.googleapis.com/v1/accounts:
 FIREBASE_REST_RESET_URL = f"https://identitytoolkit.googleapis.com/v1/accounts:sendOobCode?key={FIREBASE_API_KEY}"
 
 def send_password_reset_email(email):
+    st.info("🔧 Reset password function was triggered.")
     if not email:
         st.error("⚠️ No email provided. Please enter your email first.")
         return
@@ -50,7 +51,7 @@ def email_step_authentication():
                     st.session_state["user_password"] = password
                     st.session_state["id_token"] = res_data.get("idToken")
                 except Exception as e:
-                    st.error(f"❌ Login failed: {e}")
+                    st.error(f"❌ Login failed")
                     login_failed = True
             
             if login_failed:
