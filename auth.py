@@ -7,6 +7,10 @@ FIREBASE_REST_SIGNUP_URL = f"https://identitytoolkit.googleapis.com/v1/accounts:
 FIREBASE_REST_RESET_URL = f"https://identitytoolkit.googleapis.com/v1/accounts:sendOobCode?key={FIREBASE_API_KEY}"
 
 def send_password_reset_email(email):
+    if not email:
+        st.error("⚠️ No email provided. Please enter your email first.")
+        return
+        
     payload = {"requestType": "PASSWORD_RESET", "email": email}
     try:
         res = requests.post(FIREBASE_REST_RESET_URL, json=payload)
@@ -25,11 +29,15 @@ def email_step_authentication():
 
     email = st.text_input("Enter your email")
 
+    if email:
+        st.session_state["temp_email"] = email
+    
     auth_mode = st.radio("What would you like to do?", ["🔓 Login", "🆕 Sign Up"])
 
     if email:
         if auth_mode == "🔓 Login":
             password = st.text_input("Password", type="password", key="login_pw")
+            login_failed = False
             if st.button("Login"):
                 login_attempted = True
                 try:
@@ -43,8 +51,11 @@ def email_step_authentication():
                     st.session_state["id_token"] = res_data.get("idToken")
                 except Exception as e:
                     st.error(f"❌ Login failed: {e}")
-                    if st.button("Reset Password"):
-                        send_password_reset_email(email)
+                    login_failed = True
+            
+            if login_failed = True
+                if st.button("Reset Password"):
+                    send_password_reset_email(st.session_state.get("temp_email", ""))
 
         elif auth_mode == "🆕 Sign Up":
             pw1 = st.text_input("Choose a password", type="password", key="signup_pw1")
