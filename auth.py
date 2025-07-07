@@ -16,7 +16,7 @@ def send_password_reset_email(email):
     try:
         res = requests.post(FIREBASE_REST_RESET_URL, json=payload)
         data = res.json()
-        st.write("firebase data",data)
+        #st.write("firebase data",data)
         if "error" in data:
             st.error(f"❌ Firebase error: {data['error']['message']}")
         else:
