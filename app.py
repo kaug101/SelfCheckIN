@@ -46,7 +46,15 @@ elif mode == "🙋‍♂️ User Mode":
         user_email, user_exists, authenticated = email_step_authentication()
         login_attempted = st.session_state.get("login_attempted", False)
         signup_attempted = st.session_state.get("signup_attempted", False)
-        if authenticated:
+        
+        if st.session_state.get("reset_password_clicked", False):
+            email_to_use = st.session_state.get("temp_email", "")
+            st.write("🔧 Reset password function was triggered.")
+            send_password_reset_email(email_to_use)
+            # Reset the flag so it doesn't run again on next rerun
+            st.session_state["reset_password_clicked"] = False
+        
+        elif authenticated:
             if not user_email:
                 user_email = "unknown@example.com"
             st.session_state["authenticated"] = True
