@@ -7,7 +7,7 @@ FIREBASE_REST_SIGNUP_URL = f"https://identitytoolkit.googleapis.com/v1/accounts:
 FIREBASE_REST_RESET_URL = f"https://identitytoolkit.googleapis.com/v1/accounts:sendOobCode?key={FIREBASE_API_KEY}"
 
 def send_password_reset_email(email):
-    st.info("🔧 Reset password function was triggered.")
+    st.info("🔧 Reset password function was entered.")
     if not email:
         st.error("⚠️ No email provided. Please enter your email first.")
         return
@@ -29,6 +29,7 @@ def email_step_authentication():
     signup_attempted = False
     if st.session_state.get("reset_password_clicked", False):
         email_to_use = st.session_state.get("temp_email", "")
+        st.info("🔧 Reset password function was triggered.")
         send_password_reset_email(email_to_use)
         # Reset the flag so it doesn't run again on next rerun
         st.session_state["reset_password_clicked"] = False
