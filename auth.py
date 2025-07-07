@@ -53,7 +53,7 @@ def email_step_authentication():
                     st.error(f"❌ Login failed: {e}")
                     login_failed = True
             
-            if login_failed = True
+            if login_failed:
                 if st.button("Reset Password"):
                     send_password_reset_email(st.session_state.get("temp_email", ""))
 
