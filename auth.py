@@ -10,8 +10,11 @@ def send_password_reset_email(email):
     payload = {"requestType": "PASSWORD_RESET", "email": email}
     try:
         res = requests.post(FIREBASE_REST_RESET_URL, json=payload)
-        res.raise_for_status()
-        st.success(f"📧 Password reset email sent to {email}.")
+        data = res.json()
+        if "error" in data:
+            st.error(f"❌ Firebase error: {data['error']['message']}")
+        else:
+            st.success(f"📧 Password reset email sent to {email}.")
     except Exception as e:
         st.error(f"❌ Failed to send reset email: {e}")
 
