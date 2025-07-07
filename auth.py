@@ -63,6 +63,7 @@ def email_step_authentication():
             
             if login_failed:
                 if st.button("Reset Password"):
+                    st.info("🔧 Reset password session state was changed.")
                     st.session_state["reset_password_clicked"] = True
             
 
