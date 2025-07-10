@@ -168,47 +168,36 @@ import textwrap
 import streamlit as st
 from typing import Dict, List
 
+# checkin_utils.py
 import hashlib, streamlit as st, textwrap
 
 DEFAULT_HELP = "Just be honest — even rough thoughts count."
 
 def _normalise_section(payload):
-    """
-    Convert any supported payload shape to a list of
-        [{"q": "...", "help": "..."}, …]   # exactly two items
-    """
-    # ❶ New JSON shape: {"questions": [...], "help": [...]}
-    if isinstance(payload, dict) and "questions" in payload:
-        qs    = payload.get("questions", [])[:2]
-        helps = payload.get("help", [])
-        return [
-            {"q": q, "help": helps[i] if i < len(helps) else DEFAULT_HELP}
-            for i, q in enumerate(qs)
-        ]
-
-    # ❷ Legacy list of dicts
-    if isinstance(payload, list) and payload and isinstance(payload[0], dict):
+    """Convert any supported payload shape to [{'q': ..., 'help': ...}, …]."""
+    if isinstance(payload, dict) and "questions" in payload:                 # new JSON
+        qs, hs = payload.get("questions", [])[:2], payload.get("help", [])
+        return [{"q": q, "help": hs[i] if i < len(hs) else DEFAULT_HELP}
+                for i, q in enumerate(qs)]
+    if isinstance(payload, list) and payload and isinstance(payload[0], dict):  # list of dicts
         return payload[:2]
-
-    # ❸ Legacy list of plain strings
-    if isinstance(payload, list):
-        from .checkin_utils import canvas_help   # local import to avoid circularity
-        return [
-            {"q": q, "help": canvas_help.get(q, DEFAULT_HELP)}
-            for q in payload[:2]
-        ]
-
-    # Anything else -> empty
-    return []
+    if isinstance(payload, list):                                            # list of strings
+        from .checkin_utils import canvas_help
+        return [{"q": q, "help": canvas_help.get(q, DEFAULT_HELP)}
+                for q in payload[:2]]
+    return []  # fallback
 
 
 def ask_questions():
-    """Render today’s 5×2 questions and return the user’s answers."""
-    user_email = st.session_state.get("user_email", "")
-    dynamic_qs = fetch_dynamic_qs_openai(user_email)      # or your fallback
+    """
+    Render the 5×2 questions and return a dict of user answers.
+    The help text is now shown persistently beneath each textarea.
+    """
+    user_email  = st.session_state.get("user_email", "")
+    question_set = fetch_dynamic_qs_openai(user_email)      # already includes fallback
 
     answers = {}
-    for section, raw in dynamic_qs.items():
+    for section, raw in question_set.items():
         qa_pairs = _normalise_section(raw)
         if not qa_pairs:
             continue
@@ -217,24 +206,26 @@ def ask_questions():
         answers[section] = []
 
         for idx, qa in enumerate(qa_pairs):
-            q_text  = qa["q"]
+            q_text   = qa["q"]
             help_txt = qa.get("help", DEFAULT_HELP)
 
-            # deterministic Streamlit key → no DuplicateElementKey
+            # stable key → avoids DuplicateElementKey
             slug = hashlib.md5(q_text.encode()).hexdigest()[:6]
             key  = f"{section}_{idx}_{slug}"
 
-            response = st.text_area(
+            ans = st.text_area(
                 label=textwrap.fill(q_text, 120),
                 key=key,
-                placeholder=help_txt,
-                help=help_txt,
+                placeholder=help_txt,   # still shows until user types
+                help=help_txt,          # tooltip on ❓
                 max_chars=500,
             )
-            answers[section].append(response)
+            # 👇 persistent on-screen help
+            st.caption(help_txt)
+
+            answers[section].append(ans)
 
     return answers
-
 
 
 
