@@ -73,7 +73,7 @@ Please comply with the schema."""
         model="o3",
         messages=[{"role": "system", "content": system},
                   {"role": "user", "content": user_prompt}],
-        temperature=0.8
+        #temperature=0.8
     )
     qs_json = json.loads(response.choices[0].message.content)
     st.session_state["dynamic_qs"] = qs_json
