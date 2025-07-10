@@ -168,49 +168,70 @@ import textwrap
 import streamlit as st
 from typing import Dict, List
 
-def ask_questions() -> Dict[str, List[str]]:
+import hashlib, streamlit as st, textwrap
+
+DEFAULT_HELP = "Just be honest — even rough thoughts count."
+
+def _normalise_section(payload):
     """
-    Render the 5 × 2 reflection questions for today’s check-in and return
-    the user’s answers.
-
-    * Pulls the question payload from `fetch_dynamic_qs_openai`, which
-      already contains a static-fallback path.
-    * Accepts both the new canonical shape
-          {"q": "...", "help": "..."}
-      and the legacy plain-string shape.
-    * Generates a deterministic, collision-free Streamlit widget key
-      for every text_area, preventing `StreamlitDuplicateElementKey`.
+    Convert any supported payload shape to a list of
+        [{"q": "...", "help": "..."}, …]   # exactly two items
     """
-    user_email: str = st.session_state.get("user_email", "")
-    question_pack = fetch_dynamic_qs_openai(user_email)
+    # ❶ New JSON shape: {"questions": [...], "help": [...]}
+    if isinstance(payload, dict) and "questions" in payload:
+        qs    = payload.get("questions", [])[:2]
+        helps = payload.get("help", [])
+        return [
+            {"q": q, "help": helps[i] if i < len(helps) else DEFAULT_HELP}
+            for i, q in enumerate(qs)
+        ]
 
-    answers: Dict[str, List[str]] = {}
+    # ❷ Legacy list of dicts
+    if isinstance(payload, list) and payload and isinstance(payload[0], dict):
+        return payload[:2]
 
-    for section, qa_pairs in question_pack.items():
+    # ❸ Legacy list of plain strings
+    if isinstance(payload, list):
+        from .checkin_utils import canvas_help   # local import to avoid circularity
+        return [
+            {"q": q, "help": canvas_help.get(q, DEFAULT_HELP)}
+            for q in payload[:2]
+        ]
+
+    # Anything else -> empty
+    return []
+
+
+def ask_questions():
+    """Render today’s 5×2 questions and return the user’s answers."""
+    user_email = st.session_state.get("user_email", "")
+    dynamic_qs = fetch_dynamic_qs_openai(user_email)      # or your fallback
+
+    answers = {}
+    for section, raw in dynamic_qs.items():
+        qa_pairs = _normalise_section(raw)
+        if not qa_pairs:
+            continue
+
         st.markdown(f"#### {section}")
         answers[section] = []
 
-        for idx, item in enumerate(qa_pairs):
-            # ---- tolerate legacy plain strings --------------------------------
-            if isinstance(item, str):
-                item = _wrap_q(item)           # wraps → {"q": ..., "help": ...}
+        for idx, qa in enumerate(qa_pairs):
+            q_text  = qa["q"]
+            help_txt = qa.get("help", DEFAULT_HELP)
 
-            q_text: str  = item["q"]
-            help_txt: str = item.get("help", "")
+            # deterministic Streamlit key → no DuplicateElementKey
+            slug = hashlib.md5(q_text.encode()).hexdigest()[:6]
+            key  = f"{section}_{idx}_{slug}"
 
-            # ---- build a stable, unique widget key ----------------------------
-            slug = hashlib.md5(q_text.encode("utf-8")).hexdigest()[:6]
-            widget_key = f"{section}_{idx}_{slug}"
-
-            # ---- render the textarea ------------------------------------------
-            answer = st.text_area(
-                label=textwrap.fill(q_text, width=120),  # wrap long questions
-                key=widget_key,
+            response = st.text_area(
+                label=textwrap.fill(q_text, 120),
+                key=key,
                 placeholder=help_txt,
                 help=help_txt,
                 max_chars=500,
             )
-            answers[section].append(answer)
+            answers[section].append(response)
 
     return answers
 
