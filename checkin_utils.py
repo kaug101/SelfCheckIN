@@ -18,6 +18,67 @@ from io import BytesIO
 
 import random
 
+def build_past_context(user_email: str, max_checkins: int = 5) -> str:
+    """Return a short paragraph with the user’s most recent answers."""
+    df = load_user_checkins(user_email)
+    if df is None or df.empty:
+        return "No history yet."
+    latest = df.sort_values("date").tail(max_checkins)
+
+    out_lines = []
+    for _, row in latest.iterrows():
+        pieces = []
+        for cat in canvas_qs_pool.keys():      # keep category order
+            pieces.append(
+                f"{cat}: {row.get(f'{cat} Q1','')} | {row.get(f'{cat} Q2','')}"
+            )
+        out_lines.append(f"{row['date']}: " + " || ".join(pieces))
+    return "\n".join(out_lines)
+
+
+def fetch_dynamic_qs_openai(user_email: str) -> dict:
+    """
+    Ask OpenAI for 5×2 questions *and* their help tips.
+    Format expected from the model (strict JSON, no markdown):
+    {
+      "Motivation": [
+        {"q": "…?", "help": "…"},
+        {"q": "…?", "help": "…"}
+      ],
+      "Energy & Resilience": [ … ],
+      ...
+    }
+    """
+    if "dynamic_qs" in st.session_state:
+        return st.session_state["dynamic_qs"]         # already fetched
+
+    client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
+    past_context = build_past_context(user_email)
+
+    system = ("You are an upbeat career-growth coach. "
+              "Generate exactly two fresh reflection questions *per* category "
+              "and a brief ‘help’ tip that nudges the user to answer more deeply. "
+              "Return only valid JSON following the given schema.")
+
+    user_prompt = f"""
+PAST ANSWERS
+------------
+{past_context}
+
+CATEGORIES (keep order & names exactly):
+{list(canvas_qs_pool.keys())}
+
+Please comply with the schema."""
+    response = client.chat.completions.create(
+        model="o3",
+        messages=[{"role": "system", "content": system},
+                  {"role": "user", "content": user_prompt}],
+        temperature=0.8
+    )
+    qs_json = json.loads(response.choices[0].message.content)
+    st.session_state["dynamic_qs"] = qs_json
+    return qs_json
+
 # 🎯 Playful growth-mindset question pool
 canvas_qs_pool = {
     "Motivation": [
@@ -90,6 +151,26 @@ canvas_help = {
     "If your purpose was a playlist, what song just got added?": "Pick a vibe or track that reflects your current direction."
 }
 
+def ask_questions():
+    answers = {}
+    user_email = st.session_state.get("user_email", "")
+    dynamic_qs = fetch_dynamic_qs_openai(user_email)
+
+    for section, qa_pairs in dynamic_qs.items():
+        st.markdown(f"#### {section}")
+        answers[section] = []
+        for obj in qa_pairs:                # obj = {"q": ..., "help": ...}
+            q = obj["q"]
+            help_txt = obj.get("help", "")
+            answers[section].append(
+                st.text_area(
+                    q,
+                    key=q, max_chars=500,
+                    placeholder=help_txt,
+                    help=help_txt
+                )
+            )
+    return answers
 
 def get_dynamic_questions_once():
     if "dynamic_qs" not in st.session_state:
