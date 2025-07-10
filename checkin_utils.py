@@ -36,59 +36,67 @@ def build_past_context(user_email: str, max_checkins: int = 5) -> str:
     return "\n".join(out_lines)
 
 
+# checkin_utils.py
 def fetch_dynamic_qs_openai(user_email: str) -> dict:
     """
-    Ask OpenAI for 5×2 questions *and* their help tips.
-    Format expected from the model (strict JSON, no markdown):
-    {
-      "Motivation": [
-        {"q": "…?", "help": "…"},
-        {"q": "…?", "help": "…"}
-      ],
-      "Energy & Resilience": [ … ],
-      ...
-    }
+    Return a dict with exactly 5 categories → 2 × {"q","help"} each.
+    Falls back to the static pool (with canvas_help) if anything goes wrong.
     """
-    if "dynamic_qs" in st.session_state:
-        return st.session_state["dynamic_qs"]         # already fetched
+    if "dynamic_qs" in st.session_state:           # already fetched this run
+        return st.session_state["dynamic_qs"]
 
-    client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
-    past_context = build_past_context(user_email)
+    # ---- build past-context block (same as before) ---------------------------
+    past_ctx = build_past_context(user_email)
 
-    system = ("You are an upbeat career-growth coach. "
-              "Generate exactly two fresh reflection questions *per* category "
-              "and a brief ‘help’ tip that nudges the user to answer more deeply. "
-              "Return only valid JSON following the given schema.")
-
-    user_prompt = f"""
-PAST ANSWERS
-------------
-{past_context}
-
-CATEGORIES (keep order & names exactly):
-{list(canvas_qs_pool.keys())}
-
-Please comply with the schema."""
-    response = client.chat.completions.create(
-        model="o3",
-        messages=[{"role": "system", "content": system},
-                  {"role": "user", "content": user_prompt}],
-        #temperature=0.8
+    system = (
+        "You are an upbeat career coach.\n"
+        "For each of the five categories I give you, produce *exactly two* "
+        "fresh reflection questions **and** a one-sentence help tip.\n"
+        "Return ONLY valid JSON like:\n"
+        "{\n"
+        '  "Motivation": [ {"q":"...","help":"..."}, {"q":"...","help":"..."} ],\n'
+        '  "Energy & Resilience": [...], ...\n'
+        "}"
     )
-    #qs_json = json.loads(response.choices[0].message.content)
+
+    user_prompt = f"""PAST ANSWERS
+{past_ctx}
+
+CATEGORIES (keep names & order):
+{list(canvas_qs_pool.keys())}
+"""
 
     try:
-        # call OpenAI …
-        qs_json = json.loads(response.choices[0].message.content)
+        client  = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
+        resp    = client.chat.completions.create(
+            model="o3",                      # o3 ignores temperature → don’t send it
+            messages=[{"role":"system","content":system},
+                      {"role":"user",  "content":user_prompt}],
+        )
+        data = json.loads(resp.choices[0].message.content)
+
+        # --- quick schema sanity-check ---------------------------------------
+        for cat in canvas_qs_pool.keys():
+            assert cat in data and len(data[cat]) == 2
+            for item in data[cat]:
+                assert isinstance(item, dict) and "q" in item and "help" in item
+
+        st.session_state["dynamic_qs"] = data
+        return data
+
     except Exception as e:
-        # 🔙 graceful fallback — but shape-compatible
-        qs_json = {
-            cat: [_wrap_q(q) for q in random.sample(questions, 2)]
+        # graceful fallback → wrap static pool with their stored help blurbs
+        st.warning(f"⚠️ Using static pool. ({e})")
+        fallback = {
+            cat: [{"q": q,
+                   "help": canvas_help.get(q,
+                            "Just be honest — even rough thoughts count.") }
+                  for q in random.sample(questions, 2)]
             for cat, questions in canvas_qs_pool.items()
         }
+        st.session_state["dynamic_qs"] = fallback
+        return fallback
 
-    st.session_state["dynamic_qs"] = qs_json
-    return qs_json
 
 # 🎯 Playful growth-mindset question pool
 canvas_qs_pool = {
@@ -189,43 +197,33 @@ def _normalise_section(payload):
 
 
 def ask_questions():
-    """
-    Render the 5×2 questions and return a dict of user answers.
-    The help text is now shown persistently beneath each textarea.
-    """
-    user_email  = st.session_state.get("user_email", "")
-    question_set = fetch_dynamic_qs_openai(user_email)      # already includes fallback
-
     answers = {}
-    for section, raw in question_set.items():
-        qa_pairs = _normalise_section(raw)
-        if not qa_pairs:
-            continue
+    user_email  = st.session_state.get("user_email", "")
+    question_set = fetch_dynamic_qs_openai(user_email)
 
+    for section, qa_pairs in question_set.items():
         st.markdown(f"#### {section}")
         answers[section] = []
 
         for idx, qa in enumerate(qa_pairs):
-            q_text   = qa["q"]
-            help_txt = qa.get("help", DEFAULT_HELP)
+            q_text  = qa["q"]
+            help_txt = qa.get("help") or "Just be honest — even rough thoughts count."
 
-            # stable key → avoids DuplicateElementKey
+            # stable widget key
             slug = hashlib.md5(q_text.encode()).hexdigest()[:6]
             key  = f"{section}_{idx}_{slug}"
 
             ans = st.text_area(
-                label=textwrap.fill(q_text, 120),
+                label=q_text,
                 key=key,
-                placeholder=help_txt,   # still shows until user types
-                help=help_txt,          # tooltip on ❓
-                max_chars=500,
+                placeholder=help_txt,   # shows until user types
+                help=help_txt           # shows on hover
             )
-            # 👇 persistent on-screen help
-            st.caption(help_txt)
-
+            st.caption(help_txt)        # 👈 stays visible at all times
             answers[section].append(ans)
 
     return answers
+
 
 
 
