@@ -162,30 +162,58 @@ canvas_help = {
     "If your purpose was a playlist, what song just got added?": "Pick a vibe or track that reflects your current direction."
 }
 
-def ask_questions():
-    answers = {}
-    user_email = st.session_state.get("user_email", "")
-    dynamic_qs = fetch_dynamic_qs_openai(user_email)  # or get_dynamic_questions_once()
+# checkin_utils.py
+import hashlib
+import textwrap
+import streamlit as st
+from typing import Dict, List
 
-    for section, qa_pairs in dynamic_qs.items():
+def ask_questions() -> Dict[str, List[str]]:
+    """
+    Render the 5 × 2 reflection questions for today’s check-in and return
+    the user’s answers.
+
+    * Pulls the question payload from `fetch_dynamic_qs_openai`, which
+      already contains a static-fallback path.
+    * Accepts both the new canonical shape
+          {"q": "...", "help": "..."}
+      and the legacy plain-string shape.
+    * Generates a deterministic, collision-free Streamlit widget key
+      for every text_area, preventing `StreamlitDuplicateElementKey`.
+    """
+    user_email: str = st.session_state.get("user_email", "")
+    question_pack = fetch_dynamic_qs_openai(user_email)
+
+    answers: Dict[str, List[str]] = {}
+
+    for section, qa_pairs in question_pack.items():
         st.markdown(f"#### {section}")
         answers[section] = []
-        for item in qa_pairs:
-            # tolerate either dict or str
+
+        for idx, item in enumerate(qa_pairs):
+            # ---- tolerate legacy plain strings --------------------------------
             if isinstance(item, str):
-                item = _wrap_q(item)
-            q = item["q"]
-            help_txt = item.get("help", "")
-            answers[section].append(
-                st.text_area(
-                    q,
-                    key=q,
-                    max_chars=500,
-                    placeholder=help_txt,
-                    help=help_txt
-                )
+                item = _wrap_q(item)           # wraps → {"q": ..., "help": ...}
+
+            q_text: str  = item["q"]
+            help_txt: str = item.get("help", "")
+
+            # ---- build a stable, unique widget key ----------------------------
+            slug = hashlib.md5(q_text.encode("utf-8")).hexdigest()[:6]
+            widget_key = f"{section}_{idx}_{slug}"
+
+            # ---- render the textarea ------------------------------------------
+            answer = st.text_area(
+                label=textwrap.fill(q_text, width=120),  # wrap long questions
+                key=widget_key,
+                placeholder=help_txt,
+                help=help_txt,
+                max_chars=500,
             )
+            answers[section].append(answer)
+
     return answers
+
 
 
 
