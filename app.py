@@ -14,8 +14,9 @@ from checkin_utils import (
     show_demo_coaching,
     build_image_prompt,
     generate_image_from_prompt,
-    reflect_on_last_action
+    reflect_on_last_action    
 )
+
 from openai_score_with_explanation import generate_openai_score
 from checkin_utils import overlay_coaching_text
 
