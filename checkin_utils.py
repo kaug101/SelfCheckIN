@@ -154,7 +154,12 @@ canvas_help = {
 def ask_questions():
     answers = {}
     user_email = st.session_state.get("user_email", "")
-    dynamic_qs = fetch_dynamic_qs_openai(user_email)
+    #dynamic_qs = fetch_dynamic_qs_openai(user_email)
+    try:
+        dynamic_qs = fetch_dynamic_qs_openai(user_email)
+    except Exception as e:
+        st.warning(f"⚠️ Using default question pool. ({e})")
+        dynamic_qs = get_static_questions_once()   # your current helper
 
     for section, qa_pairs in dynamic_qs.items():
         st.markdown(f"#### {section}")
@@ -180,21 +185,6 @@ def get_dynamic_questions_once():
         }
     return st.session_state["dynamic_qs"]
 
-def ask_questions():
-    answers = {}
-    dynamic_qs = get_dynamic_questions_once()
-    for section, questions in dynamic_qs.items():
-        st.markdown(f"#### {section}")
-        answers[section] = [
-            st.text_area(
-                q,
-                key=q,
-                max_chars=500,
-                placeholder=canvas_help.get(q, "Just be honest — even rough thoughts count."),
-                help=canvas_help.get(q, "")
-            ) for q in questions
-        ]
-    return answers
 
 def build_image_prompt(insights: str) -> str:
     return f"""
