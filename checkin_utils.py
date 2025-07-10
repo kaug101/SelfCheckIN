@@ -75,7 +75,18 @@ Please comply with the schema."""
                   {"role": "user", "content": user_prompt}],
         #temperature=0.8
     )
-    qs_json = json.loads(response.choices[0].message.content)
+    #qs_json = json.loads(response.choices[0].message.content)
+
+    try:
+        # call OpenAI …
+        qs_json = json.loads(response.choices[0].message.content)
+    except Exception as e:
+        # 🔙 graceful fallback — but shape-compatible
+        qs_json = {
+            cat: [_wrap_q(q) for q in random.sample(questions, 2)]
+            for cat, questions in canvas_qs_pool.items()
+        }
+
     st.session_state["dynamic_qs"] = qs_json
     return qs_json
 
@@ -154,28 +165,37 @@ canvas_help = {
 def ask_questions():
     answers = {}
     user_email = st.session_state.get("user_email", "")
-    #dynamic_qs = fetch_dynamic_qs_openai(user_email)
-    try:
-        dynamic_qs = fetch_dynamic_qs_openai(user_email)
-    except Exception as e:
-        st.warning(f"⚠️ Using default question pool. ({e})")
-        dynamic_qs = get_static_questions_once()   # your current helper
+    dynamic_qs = fetch_dynamic_qs_openai(user_email)  # or get_dynamic_questions_once()
 
     for section, qa_pairs in dynamic_qs.items():
         st.markdown(f"#### {section}")
         answers[section] = []
-        for obj in qa_pairs:                # obj = {"q": ..., "help": ...}
-            q = obj["q"]
-            help_txt = obj.get("help", "")
+        for item in qa_pairs:
+            # tolerate either dict or str
+            if isinstance(item, str):
+                item = _wrap_q(item)
+            q = item["q"]
+            help_txt = item.get("help", "")
             answers[section].append(
                 st.text_area(
                     q,
-                    key=q, max_chars=500,
+                    key=q,
+                    max_chars=500,
                     placeholder=help_txt,
                     help=help_txt
                 )
             )
     return answers
+
+
+
+def _wrap_q(q: str) -> dict:
+    """Return the canonical {"q": …, "help": …} structure for any plain string."""
+    return {
+        "q": q,
+        "help": canvas_help.get(q, "Just be honest — even rough thoughts count.")
+    }
+
 
 def get_dynamic_questions_once():
     if "dynamic_qs" not in st.session_state:
