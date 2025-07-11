@@ -8,6 +8,11 @@ import pandas as pd
 GOOGLE_SHEET_ID = "1-_qYgfLjxnxfwo-sNkkM6xEDWwEAmtizUP0n9aUQS40"
 
 
+@st.cache_data(ttl=600)          # 10-minute cache; tweak as you like
+def get_all_checkins_cached() -> pd.DataFrame | None:
+    """Cached wrapper around the slow Google-Sheet fetch."""
+    return get_all_checkins()    # existing function
+
 def get_worksheet():
     encoded_credentials = st.secrets["GCP"]["service_account_base64"]
     decoded = base64.b64decode(encoded_credentials).decode("utf-8")
