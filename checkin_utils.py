@@ -545,21 +545,35 @@ def save_checkin(user_email, canvas_answers, score, recommendation=None):
 
 # Modify load_user_checkins to extract embeddings
 
-def load_user_checkins(user_email):
-    df = get_all_checkins()
-    if df is not None and not df.empty:
-        password = st.session_state.get("user_password", "")
-        df["user_decrypted"] = df["user"].apply(lambda val: decrypt_checkin(val, password, user_email))
-        df = df[df["user_decrypted"] == user_email]
-        for col in df.columns:
-            if col in ("user", "score", "recommendation", "date") or "Q" in col:
-                df[col] = df[col].apply(lambda val: decrypt_checkin(val, password, user_email) if val else "")
-        if "embedding" in df.columns:
-            df["embedding_vector"] = df["embedding"].apply(lambda x: json.loads(x) if x and x.strip().startswith("[") else None)
-        return df
-    return None
+def load_user_checkins(user_email: str):
+    # pull from cache instead of hitting Google Sheets every rerun
+    df = get_all_checkins_cached()
 
+    if df is None or df.empty:
+        return None
 
+    password = st.session_state.get("user_password", "")
+
+    # ---------- decrypt user column and filter to this user ----------
+    df["user_decrypted"] = df["user"].apply(
+        lambda val: decrypt_checkin(val, password, user_email)
+    )
+    df = df[df["user_decrypted"] == user_email]
+
+    # ---------- decrypt the rest of the columns you care about -------
+    for col in df.columns:
+        if col in ("user", "score", "recommendation", "date") or "Q" in col:
+            df[col] = df[col].apply(
+                lambda val: decrypt_checkin(val, password, user_email) if val else ""
+            )
+
+    # (optional) parse embedding JSON
+    if "embedding" in df.columns:
+        df["embedding_vector"] = df["embedding"].apply(
+            lambda x: json.loads(x) if x and x.strip().startswith("[") else None
+        )
+
+    return df
 
 def reflect_on_last_action(df):
     if df is not None and not df.empty:
