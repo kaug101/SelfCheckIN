@@ -28,6 +28,11 @@ st.set_page_config(page_title="Daily Check-In App", layout="centered")
 st.title("🏁 Welcome to the Daily Check-In App")
 
 mode = st.radio("Choose your mode:", ["🎯 Demo Mode", "🙋‍♂️ User Mode"])
+# app.py (very top, before st.set_page_config or any widgets)
+from google_sheet import get_all_checkins_cached
+
+# warm the cache immediately
+get_all_checkins_cached()
 
 if mode == "🎯 Demo Mode":
     st.subheader("Demo Mode: View Individual Personas")
