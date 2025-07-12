@@ -7,7 +7,7 @@ from datetime import datetime
 from google_sheet import append_checkin_to_sheet, get_all_checkins
 from checkin_crypto import encrypt_checkin, decrypt_checkin
 from openai import OpenAI
-
+from google_sheet import get_all_checkins_cached
 import json
 import numpy as np
 from sklearn.metrics.pairwise import cosine_similarity
