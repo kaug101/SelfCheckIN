@@ -18,6 +18,86 @@ from io import BytesIO
 
 import random
 
+def build_past_context(user_email: str, max_checkins: int = 5) -> str:
+    """Return a short paragraph with the user’s most recent answers."""
+    df = load_user_checkins(user_email)
+    if df is None or df.empty:
+        return "No history yet."
+    latest = df.sort_values("date").tail(max_checkins)
+
+    out_lines = []
+    for _, row in latest.iterrows():
+        pieces = []
+        for cat in canvas_qs_pool.keys():      # keep category order
+            pieces.append(
+                f"{cat}: {row.get(f'{cat} Q1','')} | {row.get(f'{cat} Q2','')}"
+            )
+        out_lines.append(f"{row['date']}: " + " || ".join(pieces))
+    return "\n".join(out_lines)
+
+
+# checkin_utils.py
+def fetch_dynamic_qs_openai(user_email: str) -> dict:
+    """
+    Return a dict with exactly 5 categories → 2 × {"q","help"} each.
+    Falls back to the static pool (with canvas_help) if anything goes wrong.
+    """
+    if "dynamic_qs" in st.session_state:           # already fetched this run
+        return st.session_state["dynamic_qs"]
+
+    # ---- build past-context block (same as before) ---------------------------
+    past_ctx = build_past_context(user_email)
+
+    system = (
+        "You are an upbeat career coach.\n"
+        "For each of the five categories I give you, produce *exactly two* "
+        "fresh reflection questions **and** a one-sentence help tip.\n"
+        "Return ONLY valid JSON like:\n"
+        "{\n"
+        '  "Motivation": [ {"q":"...","help":"..."}, {"q":"...","help":"..."} ],\n'
+        '  "Energy & Resilience": [...], ...\n'
+        "}"
+    )
+
+    user_prompt = f"""PAST ANSWERS
+{past_ctx}
+
+CATEGORIES (keep names & order):
+{list(canvas_qs_pool.keys())}
+"""
+
+    try:
+        client  = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
+        resp    = client.chat.completions.create(
+            model="o3",                      # o3 ignores temperature → don’t send it
+            messages=[{"role":"system","content":system},
+                      {"role":"user",  "content":user_prompt}],
+        )
+        data = json.loads(resp.choices[0].message.content)
+
+        # --- quick schema sanity-check ---------------------------------------
+        for cat in canvas_qs_pool.keys():
+            assert cat in data and len(data[cat]) == 2
+            for item in data[cat]:
+                assert isinstance(item, dict) and "q" in item and "help" in item
+
+        st.session_state["dynamic_qs"] = data
+        return data
+
+    except Exception as e:
+        # graceful fallback → wrap static pool with their stored help blurbs
+        st.warning(f"⚠️ Using static pool. ({e})")
+        fallback = {
+            cat: [{"q": q,
+                   "help": canvas_help.get(q,
+                            "Just be honest — even rough thoughts count.") }
+                  for q in random.sample(questions, 2)]
+            for cat, questions in canvas_qs_pool.items()
+        }
+        st.session_state["dynamic_qs"] = fallback
+        return fallback
+
+
 # 🎯 Playful growth-mindset question pool
 canvas_qs_pool = {
     "Motivation": [
@@ -90,6 +170,70 @@ canvas_help = {
     "If your purpose was a playlist, what song just got added?": "Pick a vibe or track that reflects your current direction."
 }
 
+# checkin_utils.py
+import hashlib
+import textwrap
+import streamlit as st
+from typing import Dict, List
+
+# checkin_utils.py
+import hashlib, streamlit as st, textwrap
+
+DEFAULT_HELP = "Just be honest — even rough thoughts count."
+
+def _normalise_section(payload):
+    """Convert any supported payload shape to [{'q': ..., 'help': ...}, …]."""
+    if isinstance(payload, dict) and "questions" in payload:                 # new JSON
+        qs, hs = payload.get("questions", [])[:2], payload.get("help", [])
+        return [{"q": q, "help": hs[i] if i < len(hs) else DEFAULT_HELP}
+                for i, q in enumerate(qs)]
+    if isinstance(payload, list) and payload and isinstance(payload[0], dict):  # list of dicts
+        return payload[:2]
+    if isinstance(payload, list):                                            # list of strings
+        from .checkin_utils import canvas_help
+        return [{"q": q, "help": canvas_help.get(q, DEFAULT_HELP)}
+                for q in payload[:2]]
+    return []  # fallback
+
+
+def ask_questions():
+    answers = {}
+    user_email  = st.session_state.get("user_email", "")
+    question_set = fetch_dynamic_qs_openai(user_email)
+
+    for section, qa_pairs in question_set.items():
+        st.markdown(f"#### {section}")
+        answers[section] = []
+
+        for idx, qa in enumerate(qa_pairs):
+            q_text  = qa["q"]
+            help_txt = qa.get("help") or "Just be honest — even rough thoughts count."
+
+            # stable widget key
+            slug = hashlib.md5(q_text.encode()).hexdigest()[:6]
+            key  = f"{section}_{idx}_{slug}"
+
+            ans = st.text_area(
+                label=q_text,
+                key=key,
+                placeholder=help_txt,   # shows until user types
+                help=help_txt           # shows on hover
+            )
+            st.caption(help_txt)        # 👈 stays visible at all times
+            answers[section].append(ans)
+
+    return answers
+
+
+
+
+def _wrap_q(q: str) -> dict:
+    """Return the canonical {"q": …, "help": …} structure for any plain string."""
+    return {
+        "q": q,
+        "help": canvas_help.get(q, "Just be honest — even rough thoughts count.")
+    }
+
 
 def get_dynamic_questions_once():
     if "dynamic_qs" not in st.session_state:
@@ -99,21 +243,6 @@ def get_dynamic_questions_once():
         }
     return st.session_state["dynamic_qs"]
 
-def ask_questions():
-    answers = {}
-    dynamic_qs = get_dynamic_questions_once()
-    for section, questions in dynamic_qs.items():
-        st.markdown(f"#### {section}")
-        answers[section] = [
-            st.text_area(
-                q,
-                key=q,
-                max_chars=500,
-                placeholder=canvas_help.get(q, "Just be honest — even rough thoughts count."),
-                help=canvas_help.get(q, "")
-            ) for q in questions
-        ]
-    return answers
 
 def build_image_prompt(insights: str) -> str:
     return f"""
@@ -416,21 +545,35 @@ def save_checkin(user_email, canvas_answers, score, recommendation=None):
 
 # Modify load_user_checkins to extract embeddings
 
-def load_user_checkins(user_email):
-    df = get_all_checkins()
-    if df is not None and not df.empty:
-        password = st.session_state.get("user_password", "")
-        df["user_decrypted"] = df["user"].apply(lambda val: decrypt_checkin(val, password, user_email))
-        df = df[df["user_decrypted"] == user_email]
-        for col in df.columns:
-            if col in ("user", "score", "recommendation", "date") or "Q" in col:
-                df[col] = df[col].apply(lambda val: decrypt_checkin(val, password, user_email) if val else "")
-        if "embedding" in df.columns:
-            df["embedding_vector"] = df["embedding"].apply(lambda x: json.loads(x) if x and x.strip().startswith("[") else None)
-        return df
-    return None
+def load_user_checkins(user_email: str):
+    # pull from cache instead of hitting Google Sheets every rerun
+    df = get_all_checkins_cached()
 
+    if df is None or df.empty:
+        return None
 
+    password = st.session_state.get("user_password", "")
+
+    # ---------- decrypt user column and filter to this user ----------
+    df["user_decrypted"] = df["user"].apply(
+        lambda val: decrypt_checkin(val, password, user_email)
+    )
+    df = df[df["user_decrypted"] == user_email]
+
+    # ---------- decrypt the rest of the columns you care about -------
+    for col in df.columns:
+        if col in ("user", "score", "recommendation", "date") or "Q" in col:
+            df[col] = df[col].apply(
+                lambda val: decrypt_checkin(val, password, user_email) if val else ""
+            )
+
+    # (optional) parse embedding JSON
+    if "embedding" in df.columns:
+        df["embedding_vector"] = df["embedding"].apply(
+            lambda x: json.loads(x) if x and x.strip().startswith("[") else None
+        )
+
+    return df
 
 def reflect_on_last_action(df):
     if df is not None and not df.empty:
