@@ -27,7 +27,7 @@ from delete_user_utils import delete_account_from_firebase, delete_all_user_chec
 st.set_page_config(page_title="Daily Check-In App", layout="centered")
 st.title("🏁 Welcome to the Daily Check-In App")
 
-mode = st.radio("Choose your mode:", ["🎯 Demo Mode", "🙋‍♂️ User Mode"])
+mode = st.radio("Choose your mode:", ["🙋‍♂️ User Mode","🎯 Demo Mode"])
 # app.py (very top, before st.set_page_config or any widgets)
 from google_sheet import get_all_checkins_cached
 
@@ -101,29 +101,30 @@ elif mode == "🙋‍♂️ User Mode":
                 st.session_state.clear()
                 st.rerun()
 
+        
+
         if user_action == "🆕 New Check-In":
-            canvas_answers = ask_questions()
-            if st.button("Submit and Save Check-In"):
-                #st.info("🔄 Calculating your dynamic score...")
-                #score = generate_score(canvas_answers)
-                #score, justification = generate_openai_score(canvas_answers)
-                #st.success(f"✅ Your total score is **{score}/25**")
-                #st.markdown(f"🧾 *{justification}*")
+            with st.form("checkin_form"):
+                canvas_answers = ask_questions(key_prefix="form_")
+                submitted = st.form_submit_button("Submit and Save Check-In")
+
+            if submitted:
                 st.subheader("🧠 Coaching Feedback from AI")
                 with st.spinner("Generating insights..."):
                     score, insights = generate_openai_feedback(canvas_answers)
                     st.markdown(insights)
-                    #img_prompt = build_image_prompt(insights)
-                    #image_url = generate_image_from_prompt(img_prompt)
-                    #if image_url:
-                    #    image_with_text = overlay_coaching_text(image_url, action_items)
-                    #    st.image(image_with_text, caption="Your coaching visualization + key actions", use_container_width=True)
-
 
                 try:
                     save_checkin(user_email, canvas_answers, score, recommendation=insights)
-                    #st.success("✅ Check-in successfully saved!")
                 except Exception as e:
                     import traceback
                     st.error(f"❌ Failed to save check-in: {e}")
                     st.code(traceback.format_exc(), language="python")
+
+        if user_action == "📈 View Past Insights":
+            show_insights(df)
+            if st.button("🚪 Sign Out"):
+                st.session_state.clear()
+                st.rerun()
+
+        
