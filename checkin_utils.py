@@ -196,7 +196,8 @@ def _normalise_section(payload):
     return []  # fallback
 
 
-def ask_questions():
+
+def ask_questions(key_prefix=""):
     answers = {}
     user_email  = st.session_state.get("user_email", "")
     question_set = fetch_dynamic_qs_openai(user_email)
@@ -215,14 +216,15 @@ def ask_questions():
 
             ans = st.text_area(
                 label=q_text,
-                key=key,
-                placeholder=help_txt,   # shows until user types
-                help=help_txt           # shows on hover
+                key=f"{key_prefix}{key}",
+                placeholder=help_txt,
+                help=help_txt
             )
-            st.caption(help_txt)        # 👈 stays visible at all times
+            st.caption(help_txt)
             answers[section].append(ans)
 
     return answers
+
 
 
 
