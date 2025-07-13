@@ -102,7 +102,8 @@ elif mode == "🙋‍♂️ User Mode":
                 st.rerun()
 
         
-if user_action == "🆕 New Check-In":
+
+        if user_action == "🆕 New Check-In":
             with st.form("checkin_form"):
                 canvas_answers = ask_questions()
                 submitted = st.form_submit_button("Submit and Save Check-In")
@@ -119,7 +120,8 @@ if user_action == "🆕 New Check-In":
                     import traceback
                     st.error(f"❌ Failed to save check-in: {e}")
                     st.code(traceback.format_exc(), language="python")
-if user_action == "📈 View Past Insights":
+
+        if user_action == "📈 View Past Insights":
             show_insights(df)
             if st.button("🚪 Sign Out"):
                 st.session_state.clear()
