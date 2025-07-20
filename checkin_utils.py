@@ -51,7 +51,7 @@ def fetch_dynamic_qs_openai(user_email: str) -> dict:
     system = (
         "You are an upbeat career coach.\n"
         "For each of the five categories I give you, produce *exactly two* "
-        "fresh reflection questions **and** a one-sentence help tip.\n"
+        "fresh reflection questions (Max 12 words) **and** a one-sentence help tip (Max 12 words). \n"
         "Return ONLY valid JSON like:\n"
         "{\n"
         '  "Motivation": [ {"q":"...","help":"..."}, {"q":"...","help":"..."} ],\n'
