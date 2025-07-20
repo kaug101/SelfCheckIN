@@ -44,7 +44,7 @@ if mode == "🎯 Demo Mode":
     }
     demo_data = get_demo_checkins(persona_map[selected_persona])
     if not demo_data.empty:
-        show_insights(demo_data)
+        show_insights(demo_data, key_prefix="demo")
         st.header("🧑‍🏫 Coaching Recommendations")
         show_demo_coaching(persona_map[selected_persona])
     else:
@@ -96,7 +96,7 @@ elif mode == "🙋‍♂️ User Mode":
                 st.stop()
 
         if user_action == "📈 View Past Insights":
-            show_insights(df)
+            show_insights(df, key_prefix=user_email)
             if st.button("🚪 Sign Out"):
                 st.session_state.clear()
                 st.rerun()
