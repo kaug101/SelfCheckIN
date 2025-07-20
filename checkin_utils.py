@@ -407,7 +407,7 @@ def overlay_coaching_text(image_url: str, action_items: list[str]) -> Image.Imag
     return combined.convert("RGB")
 
 
-def show_insights(df):
+def show_insights(df, key_prefix: str = "insights"):
     import matplotlib.pyplot as plt
     from datetime import datetime, timedelta
     import matplotlib.dates as mdates
@@ -420,7 +420,11 @@ def show_insights(df):
         df = df.sort_values("date")
 
         # User selection for timeframe
-        timeframe = st.selectbox("Show scores for:", ["Last 7 days", "Last 14 days", "Last 30 days", "All time"])
+        timeframe = st.selectbox(
+            "Show scores for:",
+            ["Last 7 days", "Last 14 days", "Last 30 days", "All time"],
+            key=f"{key_prefix}_timeframe"
+        )
         days_map = {
             "Last 7 days": 7,
             "Last 14 days": 14,
