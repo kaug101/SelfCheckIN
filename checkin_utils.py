@@ -262,7 +262,7 @@ The image should:
 """
 
 
-def generate_openai_feedback(canvas_answers: dict) -> tuple[int, str]:
+def generate_openai_feedback(canvas_answers: dict) -> tuple[int, str, int]:
     client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
 
     # Prepare current embedding
@@ -343,10 +343,11 @@ Framework: <1-line>
             ],
             temperature=1,
         )
+        ttft_ms = response.response_ms
         content = response.choices[0].message.content.strip()
         score_line = next((line for line in content.splitlines() if line.startswith("Score:")), "")
         score = int("".join([c for c in score_line if c.isdigit()])) if score_line else 0
-        return score, content
+        return score, content, ttft_ms
     except Exception as e:
         return 0, f"⚠️ OpenAI Error: {str(e)}"
 
