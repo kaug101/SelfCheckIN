@@ -200,7 +200,22 @@ def _normalise_section(payload):
 def ask_questions(key_prefix=""):
     answers = {}
     user_email  = st.session_state.get("user_email", "")
+     # Show countdown timer while fetching dynamic questions
+    if "question_start_time" not in st.session_state:
+        st.session_state["question_start_time"] = time.time()
+
+    timer_placeholder = st.empty()
+    for remaining in range(30, -1, -1):
+        timer_placeholder.markdown(f"⏳ Generating personalized questions... {remaining} seconds left")
+        time.sleep(1)
+
+    # Capture time taken to generate questions
+    t0 = time.time()
     question_set = fetch_dynamic_qs_openai(user_email)
+    t1 = time.time()
+
+    elapsed = int(t1 - t0)
+    timer_placeholder.markdown(f"✅ Generated personalized questions in {elapsed} seconds")
 
     for section, qa_pairs in question_set.items():
         st.markdown(f"#### {section}")
