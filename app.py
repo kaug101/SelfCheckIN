@@ -112,8 +112,9 @@ elif mode == "🙋‍♂️ User Mode":
             if submitted:
                 st.subheader("🧠 Coaching Feedback from AI")
                 with st.spinner("Generating insights..."):
-                    score, insights = generate_openai_feedback(canvas_answers)
+                    score, insights, ttft_ms = generate_openai_feedback(canvas_answers)
                     st.markdown(insights)
+                    st.caption(f"⏱ Generated in {ttft_ms/1000:.2f} seconds")
 
                 try:
                     save_checkin(user_email, canvas_answers, score, recommendation=insights)
