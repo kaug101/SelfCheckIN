@@ -1,7 +1,7 @@
 import openai
 import streamlit as st
 import matplotlib.pyplot as plt
-
+import time
 import pandas as pd
 from datetime import datetime
 from google_sheet import append_checkin_to_sheet, get_all_checkins
