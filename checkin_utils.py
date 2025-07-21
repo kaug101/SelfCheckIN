@@ -204,7 +204,7 @@ def ask_questions(key_prefix=""):
     if "question_start_time" not in st.session_state:
         st.session_state["question_start_time"] = time.time()
 
-    #timer_placeholder = st.empty()
+    timer_placeholder = st.empty()
     #for remaining in range(30, -1, -1):
         #timer_placeholder.markdown(f"⏳ Generating personalized questions... {remaining} seconds left")
         #time.sleep(1)
