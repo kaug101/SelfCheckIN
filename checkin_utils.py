@@ -334,6 +334,7 @@ Framework: <1-line>
 """
 
     try:
+        start_time = time.time()
         response = client.chat.completions.create(
             #model="gpt-4o",
             model="o3",
@@ -343,7 +344,8 @@ Framework: <1-line>
             ],
             temperature=1,
         )
-        ttft_ms = response.response_ms
+        #ttft_ms = response.response_ms
+        ttft_ms = int((time.time() - start_time) * 1000)
         content = response.choices[0].message.content.strip()
         score_line = next((line for line in content.splitlines() if line.startswith("Score:")), "")
         score = int("".join([c for c in score_line if c.isdigit()])) if score_line else 0
