@@ -319,9 +319,9 @@ Your task is to:
    
 3. Provide a short justification for the score
 
-4. Share 3 concise, actionable coaching suggestions (max 12 words each) - 1 for immediate, 1 for near-term (3 months), and 1 for long-term (6 months).
+4. Share 3 concise, actionable coaching suggestions (max 12 words each).
 
-5. Summarize their overall theme or growth direction in one line
+5. Provide reference to a relevant framework to explore further (max 1 line)
 
 Format:
 Score: <number>
@@ -330,7 +330,7 @@ Actions:
 - <Actionable suggestion 1> (max 12 words)
 - <Actionable suggestion 2>
 - <Optional suggestion 3>
-Theme: <1-line theme>
+Framework: <1-line>
 """
 
     try:
