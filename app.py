@@ -25,9 +25,10 @@ from delete_user_utils import delete_account_from_firebase, delete_all_user_chec
 
 
 st.set_page_config(page_title="Daily Check-In App", layout="centered")
-st.title("🏁 Welcome to the Daily Check-In App")
+st.title("🏁 Daily Check-In 🏁")
 
-mode = st.radio("Choose your mode:", ["🙋‍♂️ User Mode","🎯 Demo Mode"])
+# mode = st.radio("Choose your mode:", ["🙋‍♂️ User Mode","🎯 Demo Mode"])
+mode = "🙋‍♂️ User Mode"
 # app.py (very top, before st.set_page_config or any widgets)
 from google_sheet import get_all_checkins_cached
 
