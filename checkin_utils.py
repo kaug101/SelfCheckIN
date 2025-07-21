@@ -349,7 +349,7 @@ Framework: <1-line>
         score = int("".join([c for c in score_line if c.isdigit()])) if score_line else 0
         return score, content, ttft_ms
     except Exception as e:
-        return 0, f"⚠️ OpenAI Error: {str(e)}"
+        return 0, f"⚠️ OpenAI Error: {str(e)}", 0
 
 
 def generate_image_from_prompt(prompt_text: str) -> str:
