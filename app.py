@@ -105,23 +105,23 @@ elif mode == "🙋‍♂️ User Mode":
         
 
         if user_action == "🆕 New Check-In":
-            with st.form("checkin_form"):
-                canvas_answers = ask_questions(key_prefix="form_")
-                submitted = st.form_submit_button("Submit and Save Check-In")
-
+            with st.spinner("🤖 Generating personalized questions..."):
+                with st.form("checkin_form"):
+                    canvas_answers = ask_questions(key_prefix="form_")
+                    submitted = st.form_submit_button("Submit and Save Check-In")
             if submitted:
                 st.subheader("🧠 Coaching Feedback from AI")
                 with st.spinner("Generating insights..."):
                     score, insights, ttft_ms = generate_openai_feedback(canvas_answers)
                     st.markdown(insights)
                     st.caption(f"⏱ Generated in {ttft_ms/1000:.2f} seconds")
-
                 try:
                     save_checkin(user_email, canvas_answers, score, recommendation=insights)
                 except Exception as e:
                     import traceback
                     st.error(f"❌ Failed to save check-in: {e}")
                     st.code(traceback.format_exc(), language="python")
+
 
         if user_action == "📈 View Past Insights":
             show_insights(df)
