@@ -140,7 +140,7 @@ elif mode == "🙋‍♂️ User Mode":
             if pdf_file:
                 from brand_builder_utils import extract_pdf_text, generate_brand_brief
         
-                with st.spinner("Analysing profile & drafting article …"):
+                with st.spinner("Analysing profile & crafting brand building plan  …"):
                     resume_text = extract_pdf_text(pdf_file)
                     result      = generate_brand_brief(resume_text)
                     
@@ -157,9 +157,9 @@ elif mode == "🙋‍♂️ User Mode":
                     for b in plan_bullets:
                         st.markdown(f"- {b}")
                     
-                    st.markdown("Start here...")
+                    #st.markdown("Start here...")
                     for obj in article_objects:
                         st.markdown(f"### ✍️ Quick-Post – **{obj['theme']}**")
                         st.markdown(f"<pre>{obj['article']}</pre>", unsafe_allow_html=True)
 
-                    st.caption("I'm only helping you here - Tweak with your own words, recheck, take feedback from peers and then share!")
+                    st.caption("I'm only helping you here to get started - Tweak with your own words, recheck, take feedback from peers and then share!")
