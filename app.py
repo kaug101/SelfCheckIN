@@ -157,7 +157,7 @@ elif mode == "🙋‍♂️ User Mode":
                     for b in plan_bullets:
                         st.markdown(f"- {b}")
                     
-                    st.markdown("### Start building your brand with one of these topics...")
+                    st.markdown("Start here...")
                     for obj in article_objects:
                         st.markdown(f"### ✍️ Quick-Post – **{obj['theme']}**")
                         st.markdown(f"<pre>{obj['article']}</pre>", unsafe_allow_html=True)
