@@ -137,7 +137,7 @@ elif mode == "🙋‍♂️ User Mode":
                 type=["pdf"]
             )
         
-            if pdf_file and st.button("Generate Brand Insights"):
+            if pdf_file:
                 from brand_builder_utils import extract_pdf_text, generate_brand_brief
         
                 with st.spinner("Analysing profile & drafting article …"):
