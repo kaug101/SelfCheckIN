@@ -82,7 +82,7 @@ elif mode == "🙋‍♂️ User Mode":
             #user_action = st.radio("Choose Action", ["New Check-In", "View Past Insights", "Delete My Account"]) #st.selectbox("What would you like to do?", ("📈 View Past Insights", "🆕 New Check-In"))
              # Reflect on last coaching actions
             reflect_on_last_action(df)
-            user_action = st.radio("Choose Action", ["🆕 New Check-In", "📈 View Past Insights", "🗑 Delete My Account"])
+            user_action = st.radio("Choose Action", ["🆕 New Check-In", "🌟 Brand Builder", "📈 View Past Insights", "🗑 Delete My Account"])
 
 
         if user_action == "🗑 Delete My Account":
@@ -105,7 +105,7 @@ elif mode == "🙋‍♂️ User Mode":
         
 
         if user_action == "🆕 New Check-In":
-            with st.spinner("🤖 Generating personalized questions..."):
+            with st.spinner("🤖 Generating personalized questions for your today's self-checkin..."):
                 with st.form("checkin_form"):
                     canvas_answers = ask_questions(key_prefix="form_")
                     submitted = st.form_submit_button("Submit and Save Check-In")
@@ -130,3 +130,36 @@ elif mode == "🙋‍♂️ User Mode":
                 st.rerun()
 
         
+        if user_action == "🌟 Brand Builder":
+            st.subheader("🚀 Build Your Public Expertise Brand")
+            pdf_file = st.file_uploader(
+                "Upload your résumé or LinkedIn-to-PDF export",
+                type=["pdf"]
+            )
+        
+            if pdf_file:
+                from brand_builder_utils import extract_pdf_text, generate_brand_brief
+        
+                with st.spinner("Analysing profile & drafting article …"):
+                    resume_text = extract_pdf_text(pdf_file)
+                    result      = generate_brand_brief(resume_text)
+                    
+        
+                if result:
+                    exp1, exp2        = result["expertise"]
+                    plan_bullets      = result.get("plan_90_days", [])
+                    article_objects   = result.get("micro_articles", [])
+
+                    st.success("### 🎯 Core Expertise Themes")
+                    st.markdown(f"- **{exp1}**\n- **{exp2}**")
+        
+                    st.markdown("### 🗺 90-Day Plan")
+                    for b in plan_bullets:
+                        st.markdown(f"- {b}")
+                    
+                    st.markdown("Start here...")
+                    for obj in article_objects:
+                        st.markdown(f"### ✍️ Quick-Post – **{obj['theme']}**")
+                        st.markdown(f"<pre>{obj['article']}</pre>", unsafe_allow_html=True)
+
+                    st.caption("I'm only helping you here - Tweak with your own words, recheck, take feedback from peers and then share!")
