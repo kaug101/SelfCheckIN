@@ -146,9 +146,9 @@ elif mode == "🙋‍♂️ User Mode":
                     
         
                 if result:
-                    exp1, exp2          = result["expertise"]
-                    plan_bullets        = result["plan_90_days"]
-                    article_objs        = result["micro_articles"]   # list of 2 dicts
+                    exp1, exp2        = result["expertise"]
+                    plan_bullets      = result.get("plan_90_days", [])
+                    article_objects   = result.get("micro_articles", [])
 
                     st.success("### 🎯 Core Expertise Themes")
                     st.markdown(f"- **{exp1}**\n- **{exp2}**")
