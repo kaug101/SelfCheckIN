@@ -10,3 +10,4 @@ matplotlib
 cryptography>=41.0.0
 Pillow
 scikit-learn
+pdfplumber             # fast, zero-config PDF → text
