@@ -82,7 +82,7 @@ elif mode == "🙋‍♂️ User Mode":
             #user_action = st.radio("Choose Action", ["New Check-In", "View Past Insights", "Delete My Account"]) #st.selectbox("What would you like to do?", ("📈 View Past Insights", "🆕 New Check-In"))
              # Reflect on last coaching actions
             reflect_on_last_action(df)
-            user_action = st.radio("Choose Action", ["🆕 New Check-In", "📈 View Past Insights", "🗑 Delete My Account"])
+            user_action = st.radio("Choose Action", ["🆕 New Check-In", "🌟 Brand Builder", "📈 View Past Insights", "🗑 Delete My Account"])
 
 
         if user_action == "🗑 Delete My Account":
@@ -130,3 +130,27 @@ elif mode == "🙋‍♂️ User Mode":
                 st.rerun()
 
         
+        if user_action == "🌟 Brand Builder":
+            st.subheader("🚀 Build Your Public Expertise Brand")
+            pdf_file = st.file_uploader(
+                "Upload your résumé or LinkedIn-to-PDF export",
+                type=["pdf"]
+            )
+        
+            if pdf_file and st.button("Generate Brand Insights"):
+                from brand_builder_utils import extract_pdf_text, generate_brand_brief
+        
+                with st.spinner("Analysing profile & drafting article …"):
+                    resume_text = extract_pdf_text(pdf_file)
+                    result      = generate_brand_brief(resume_text)
+        
+                if result:
+                    exp1, exp2 = result["expertise"]
+                    article    = result["article"]
+        
+                    st.success("### 🎯 Core Expertise Themes")
+                    st.markdown(f"- **{exp1}**\n- **{exp2}**")
+        
+                    st.success("### ✍️ 10-Line Thought-Leadership Draft")
+                    st.markdown(f"<pre>{article}</pre>", unsafe_allow_html=True)
+                    st.caption("Tweak the wording, then post on LinkedIn / Medium!")
