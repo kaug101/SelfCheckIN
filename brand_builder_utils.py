@@ -31,7 +31,7 @@ def generate_brand_brief(resume_text: str) -> dict|None:
         resp = client.chat.completions.create(
             model="o3",
             messages=build_prompt(resume_text),
-            temperature=0.3,
+            response_format={"type": "json_object"}  # guarantees pure-JSON output
         )
         return json.loads(resp.choices[0].message.content)
     except Exception as e:
