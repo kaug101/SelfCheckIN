@@ -10,36 +10,24 @@ def extract_pdf_text(uploaded_pdf) -> str:
     return "\n".join(p for p in pages if p).strip()
 
 def build_prompt(resume_text: str) -> list[dict]:
+   # brand_builder_utils.py  – inside build_prompt()
     system = (
         "You are a senior personal-branding strategist.\n"
-        "The user just uploaded their résumé / LinkedIn PDF.\n"
-        "Analyse it and deliver:\n"
-        "A) **exactly two** distinct expertise themes this person should amplify.\n"
-        "B) A 90-day brand-building plan (bulleted).\n"
-        "C) Two 5-line micro-articles (≈1–2 sentences per line) linking **news from the last 30 days** "
-        "to each theme. Put any source URLs directly in the lines as Markdown links.\n\n"
-        "Return **ONLY valid JSON** with this structure - nothing else:\n"
+        "... (same description) ...\n\n"
+        "Return **ONLY valid JSON** exactly like this – no extra keys, no markdown, nothing else:\n"
         "{\n"
-        "  \"expertise\": [\n"
-        "    \"<theme-1>\",\n"
-        "    \"<theme-2>\"\n"
+        "  \"expertise\": [\"Product-Led Growth\", \"AI Ethics\"],\n"
+        "  \"plan_90_days\": [\n"
+        "    \"Week 1-2: audit existing content …\",\n"
+        "    \"Week 3-4: publish long-form piece on …\"\n"
         "  ],\n"
-        "  \"plan_90_days\": [            # 6–10 high-level bullets are enough\n"
-        "    \"Week 1-2: …\",\n"
-        "    \"Week 3-4: …\"\n"
-        "  ],\n"
-        "  \"micro_articles\": [          # one JSON object per theme\n"
-        "    {\n"
-        "      \"theme\": \"<theme-1>\",\n"
-        "      \"article\": \"line 1\\nline 2\\nline 3\\nline 4\\nline 5\"\n"
-        "    },\n"
-        "    {\n"
-        "      \"theme\": \"<theme-2>\",\n"
-        "      \"article\": \"line 1\\nline 2\\nline 3\\nline 4\\nline 5\"\n"
-        "    }\n"
+        "  \"micro_articles\": [\n"
+        "    {\"theme\": \"Product-Led Growth\", \"article\": \"line1\\nline2\\nline3\\nline4\\nline5\"},\n"
+        "    {\"theme\": \"AI Ethics\",        \"article\": \"line1\\nline2\\nline3\\nline4\\nline5\"}\n"
         "  ]\n"
         "}"
     )
+
 
     return [
         {"role": "system", "content": system},
