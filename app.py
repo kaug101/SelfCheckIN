@@ -143,14 +143,22 @@ elif mode == "🙋‍♂️ User Mode":
                 with st.spinner("Analysing profile & drafting article …"):
                     resume_text = extract_pdf_text(pdf_file)
                     result      = generate_brand_brief(resume_text)
+                    
         
                 if result:
-                    exp1, exp2 = result["expertise"]
-                    article    = result["article"]
-        
+                    exp1, exp2          = result["expertise"]
+                    plan_bullets        = result["plan_90_days"]
+                    article_objs        = result["micro_articles"]   # list of 2 dicts
+
                     st.success("### 🎯 Core Expertise Themes")
                     st.markdown(f"- **{exp1}**\n- **{exp2}**")
         
-                    st.success("### ✍️ 10-Line Thought-Leadership Draft")
-                    st.markdown(f"<pre>{article}</pre>", unsafe_allow_html=True)
-                    st.caption("Tweak the wording, then post on LinkedIn / Medium!")
+                    st.markdown("### 🗺 90-Day Plan")
+                    for b in plan_bullets:
+                        st.markdown(f"- {b}")
+                    
+                    for obj in article_objs:
+                        st.markdown(f"### ✍️ Micro-Article – **{obj['theme']}**")
+                        st.markdown(f"<pre>{obj['article']}</pre>", unsafe_allow_html=True)
+
+                    st.caption("I'm only helping you here - Tweak with your own words, recheck against the sources, take feedback and then share!")
