@@ -105,7 +105,7 @@ elif mode == "🙋‍♂️ User Mode":
         
 
         if user_action == "🆕 New Check-In":
-            with st.spinner("🤖 Generating personalized questions..."):
+            with st.spinner("🤖 Generating personalized questions for your today's self-checkin..."):
                 with st.form("checkin_form"):
                     canvas_answers = ask_questions(key_prefix="form_")
                     submitted = st.form_submit_button("Submit and Save Check-In")
