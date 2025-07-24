@@ -123,7 +123,7 @@ def build_plan_from_pdf(pdf_text: str, user_email: str) -> dict:
 
     # ------ store in Sheet with embedding ------------------------------------
     combined = pdf_text[:20_000] + "\n" + json.dumps(data)
-    emb = generate_embedding(combined)                         :contentReference[oaicite:1]{index=1}
+    emb = generate_embedding(combined)                         
     append_brand_plan({
         "date": dt.datetime.utcnow().strftime("%Y-%m-%d %H:%M"),
         "user": user_email,
