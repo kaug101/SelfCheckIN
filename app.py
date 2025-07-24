@@ -22,8 +22,10 @@ from checkin_utils import overlay_coaching_text
 
 from delete_user_utils import delete_account_from_firebase, delete_all_user_checkins
 
-from brand_builder_utils import extract_pdf_text, build_plan_from_pdf
-from brand_builder_utils import make_quick_statement
+#from brand_builder_utils import extract_pdf_text, build_plan_from_pdf
+#from brand_builder_utils import make_quick_statement
+from brand_agents import QuickStatementAgent, PlanBuilderAgent
+from brand_builder_utils import parse_pdf  
 
 
 st.set_page_config(page_title="Daily Check-In App", layout="centered")
