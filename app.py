@@ -132,18 +132,23 @@ elif mode == "🙋‍♂️ User Mode":
                 st.rerun()
 
         
+        from brand_agents import QuickStatementAgent, PlanBuilderAgent
+
         if user_action == "🌟 Brand Builder":
             st.subheader("🌟 Brand Builder")
-        
-            bb_mode = st.radio("Choose Brand-Tool",
-                               ["⚡ Quick Expert Statement", "🗺 6-Week Brand Plan"])
+            bb_mode = st.radio("Choose Brand-Tool", ["⚡ Quick Expert Statement", "🗺 6-Week Brand Plan"])
         
             if bb_mode == "⚡ Quick Expert Statement":
                 if st.button("Generate Statement"):
-                    run_brandbuilder("statement", user_email=email)
-            
-                else:  # 6-Week Plan
-                    pdf_file = st.file_uploader("Upload résumé", type=["pdf"])
-                    if pdf_file and st.button("Build 6-Week Plan"):
-                        run_brandbuilder("plan", pdf_bytes=pdf_file.read(), user_email=email)
+                    with st.spinner("Generating expert insight…"):
+                        result = QuickStatementAgent.invoke({"input": user_email})
+                        st.success(result["output"])
+        
+            else:
+                pdf_file = st.file_uploader("Upload résumé PDF", type=["pdf"])
+                if pdf_file and st.button("Build 6-Week Plan"):
+                    with st.spinner("Crafting strategy…"):
+                        pdf_text = parse_pdf(pdf_file.read())
+                        result = PlanBuilderAgent.invoke({"input": pdf_text})
+                        st.json(json.loads(result["output"]))  # pretty print result
 
