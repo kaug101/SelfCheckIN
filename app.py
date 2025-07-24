@@ -22,7 +22,7 @@ from checkin_utils import overlay_coaching_text
 
 from delete_user_utils import delete_account_from_firebase, delete_all_user_checkins
 
-
+from brand_builder_utils import extract_pdf_text, build_plan_from_pdf
 
 st.set_page_config(page_title="Daily Check-In App", layout="centered")
 st.title("🏁 Daily Check-In 🏁")
@@ -147,7 +147,7 @@ elif mode == "🙋‍♂️ User Mode":
             else:  # 🗺 6-Week Brand Plan
                 pdf_file = st.file_uploader("Upload résumé / LinkedIn PDF", type=["pdf"])
                 if pdf_file and st.button("Generate 6-Week Plan"):
-                    from brand_builder_utils import extract_pdf_text, build_plan_from_pdf
+                    
                     with st.spinner("Analysing profile & assembling roadmap…"):
                         pdf_text = extract_pdf_text(pdf_file)
                         data     = build_plan_from_pdf(pdf_text, user_email)
