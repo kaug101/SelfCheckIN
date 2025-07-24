@@ -192,3 +192,11 @@ def parse_pdf(pdf_bytes: bytes) -> str:
     with pdfplumber.open(BytesIO(pdf_bytes)) as pdf:
         pages = [page.extract_text() for page in pdf.pages]
     return "\n".join(p for p in pages if p).strip()
+
+
+def extract_pdf_text_from_bytes(pdf_bytes: bytes) -> str:
+    from io import BytesIO
+    import pdfplumber
+    with pdfplumber.open(BytesIO(pdf_bytes)) as pdf:
+        pages = [page.extract_text() for page in pdf.pages]
+    return "\n".join(p for p in pages if p).strip()
