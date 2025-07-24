@@ -43,6 +43,7 @@ def store_plan(user_email: str, plan_json: str) -> str:
 # ---- LLM setup ------------------------------------------------------------
 
 llm_gpt4 = ChatOpenAI(model="gpt-4o", temperature=0.4)
+llm_plan = ChatOpenAI(model="gpt-4o", temperature=0.3)
 llm_o3   = ChatOpenAI(model="o3")
 
 # ---- Agent 1: Quick Statement ---------------------------------------------
@@ -77,7 +78,7 @@ plan_prompt = ChatPromptTemplate.from_messages([
 ])
 
 
-plan_agent = create_openai_functions_agent(llm=llm_o3,
+plan_agent = create_openai_functions_agent(llm=llm_plan,
                                            tools=plan_tools,
                                            prompt=plan_prompt)
 
