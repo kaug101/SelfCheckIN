@@ -25,7 +25,8 @@ from delete_user_utils import delete_account_from_firebase, delete_all_user_chec
 #from brand_builder_utils import extract_pdf_text, build_plan_from_pdf
 #from brand_builder_utils import make_quick_statement
 from brand_agents import QuickStatementAgent, PlanBuilderAgent
-from brand_builder_utils import parse_pdf  
+#from brand_builder_utils import parse_pdf  
+from brand_builder_utils import extract_pdf_text_from_bytes
 
 st.set_page_config(page_title="Daily Check-In App", layout="centered")
 st.title("🏁 Daily Check-In 🏁")
@@ -147,9 +148,9 @@ elif mode == "🙋‍♂️ User Mode":
         
             else:
                 pdf_file = st.file_uploader("Upload résumé PDF", type=["pdf"])
-                if pdf_file and st.button("Build 6-Week Plan"):
+                if pdf_file:
                     with st.spinner("Crafting strategy…"):
-                        pdf_text = parse_pdf(pdf_file.read())
+                        pdf_text = extract_pdf_text_from_bytes(pdf_file.read())  # ✅ safe raw call
                         result = PlanBuilderAgent.invoke({"input": pdf_text})
-                        st.json(json.loads(result["output"]))  # pretty print result
+                        st.json(json.loads(result["output"]))
 
