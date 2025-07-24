@@ -131,35 +131,31 @@ elif mode == "🙋‍♂️ User Mode":
 
         
         if user_action == "🌟 Brand Builder":
-            st.subheader("🚀 Build Your Public Expertise Brand")
-            pdf_file = st.file_uploader(
-                "Upload your résumé or LinkedIn-to-PDF export",
-                type=["pdf"]
-            )
+            st.subheader("🌟 Brand Builder")
         
-            if pdf_file:
-                from brand_builder_utils import extract_pdf_text, generate_brand_brief
+            bb_mode = st.radio("Choose Brand-Tool",
+                               ["⚡ Quick Expert Statement", "🗺 6-Week Brand Plan"])
         
-                with st.spinner("Analysing profile & crafting brand building plan  …"):
-                    resume_text = extract_pdf_text(pdf_file)
-                    result      = generate_brand_brief(resume_text)
-                    
+            if bb_mode == "⚡ Quick Expert Statement":
+                if st.button("Generate Statement"):
+                    from brand_builder_utils import make_quick_statement
+                    with st.spinner("Crafting your hot-take…"):
+                        stmt = make_quick_statement(user_email)
+                    st.success("### Your Expert Statement")
+                    st.markdown(stmt)
         
-                if result:
-                    exp1, exp2        = result["expertise"]
-                    plan_bullets      = result.get("plan_90_days", [])
-                    article_objects   = result.get("micro_articles", [])
-
+            else:  # 🗺 6-Week Brand Plan
+                pdf_file = st.file_uploader("Upload résumé / LinkedIn PDF", type=["pdf"])
+                if pdf_file and st.button("Generate 6-Week Plan"):
+                    from brand_builder_utils import extract_pdf_text, build_plan_from_pdf
+                    with st.spinner("Analysing profile & assembling roadmap…"):
+                        pdf_text = extract_pdf_text(pdf_file)
+                        data     = build_plan_from_pdf(pdf_text, user_email)
+        
                     st.success("### 🎯 Core Expertise Themes")
-                    st.markdown(f"- **{exp1}**\n- **{exp2}**")
+                    st.markdown(f"- **{data['expertise'][0]}**\n- **{data['expertise'][1]}**")
         
-                    st.markdown("### 🗺 90-Day Plan")
-                    for b in plan_bullets:
-                        st.markdown(f"- {b}")
-                    
-                    #st.markdown("Start here...")
-                    for obj in article_objects:
-                        st.markdown(f"### ✍️ Quick-Post – **{obj['theme']}**")
-                        st.markdown(f"<pre>{obj['article']}</pre>", unsafe_allow_html=True)
-
-                    st.caption("I'm only helping you here to get started - Tweak with your own words, recheck, take feedback from peers and then share!")
+                    st.success("### 🗺 6-Week Roadmap")
+                    for bullet in data["plan_6w"]:
+                        st.markdown(f"- {bullet}")
+                    st.caption("Plan saved – come back any time to build a Quick Statement!")
