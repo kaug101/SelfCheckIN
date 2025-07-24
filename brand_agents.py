@@ -43,7 +43,7 @@ def store_plan(user_email: str, plan_json: str) -> str:
 # ---- LLM setup ------------------------------------------------------------
 
 llm_gpt4 = ChatOpenAI(model="gpt-4o", temperature=0.4)
-llm_o3   = ChatOpenAI(model="o3", temperature=0)
+llm_o3   = ChatOpenAI(model="o3")
 
 # ---- Agent 1: Quick Statement ---------------------------------------------
 
