@@ -140,24 +140,10 @@ elif mode == "🙋‍♂️ User Mode":
         
             if bb_mode == "⚡ Quick Expert Statement":
                 if st.button("Generate Statement"):
-                    
-                    with st.spinner("Crafting your hot-take…"):
-                        stmt = make_quick_statement(user_email)
-                    st.success("### Your Expert Statement")
-                    st.markdown(stmt)
-        
-            else:  # 🗺 6-Week Brand Plan
-                pdf_file = st.file_uploader("Upload résumé / LinkedIn PDF", type=["pdf"])
-                if pdf_file and st.button("Generate 6-Week Plan"):
-                    
-                    with st.spinner("Analysing profile & assembling roadmap…"):
-                        pdf_text = extract_pdf_text(pdf_file)
-                        data     = build_plan_from_pdf(pdf_text, user_email)
-        
-                    st.success("### 🎯 Core Expertise Themes")
-                    st.markdown(f"- **{data['expertise'][0]}**\n- **{data['expertise'][1]}**")
-        
-                    st.success("### 🗺 6-Week Roadmap")
-                    for bullet in data["plan_6w"]:
-                        st.markdown(f"- {bullet}")
-                    st.caption("Plan saved – come back any time to build a Quick Statement!")
+                    run_brandbuilder("statement", user_email=email)
+            
+                else:  # 6-Week Plan
+                    pdf_file = st.file_uploader("Upload résumé", type=["pdf"])
+                    if pdf_file and st.button("Build 6-Week Plan"):
+                        run_brandbuilder("plan", pdf_bytes=pdf_file.read(), user_email=email)
+
