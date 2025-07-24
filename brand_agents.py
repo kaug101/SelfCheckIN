@@ -72,10 +72,26 @@ QuickStatementAgent = AgentExecutor(agent=quick_agent,
 plan_tools = [parse_pdf, store_plan]
 
 plan_prompt = ChatPromptTemplate.from_messages([
-    ("system", "You are a brand strategist..."),
+    ("system",
+     "You are a personal branding strategist.\n"
+     "Given a user's résumé (in plain text), extract a 6-week brand plan as JSON.\n\n"
+     "The JSON MUST have this exact structure:\n"
+     "{\n"
+     "  \"expertise\": [\"<theme1>\", \"<theme2>\"],\n"
+     "  \"plan_6w\": [\n"
+     "    \"Week 1: ...\",\n"
+     "    \"Week 2: ...\",\n"
+     "    \"Week 3: ...\",\n"
+     "    \"Week 4: ...\",\n"
+     "    \"Week 5: ...\",\n"
+     "    \"Week 6: ...\"\n"
+     "  ]\n"
+     "}\n\n"
+     "Only return valid JSON. Do not include any extra text or commentary."),
     ("user", "{input}"),
     MessagesPlaceholder(variable_name="agent_scratchpad")
 ])
+
 
 
 plan_agent = create_openai_functions_agent(llm=llm_plan,
