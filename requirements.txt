@@ -1,7 +1,7 @@
 
 streamlit
 pandas
-openai
+openai>=1.29.0
 gspread
 oauth2client
 google-auth
@@ -11,3 +11,5 @@ cryptography>=41.0.0
 Pillow
 scikit-learn
 pdfplumber             # fast, zero-config PDF → text
+
+openai-agents-python          # orchestration layer
