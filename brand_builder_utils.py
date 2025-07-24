@@ -209,3 +209,13 @@ def run_brandbuilder(task: str, **kwargs):
         pdf_text = extract_pdf(kwargs["pdf_bytes"])
         result   = Runner.run_sync(plan_agent, pdf_text)
         st.json(result.final_output)        # pretty-print plan
+
+@tool
+def parse_pdf(pdf_bytes: bytes) -> str:
+    """LangChain-compatible: return plain text from a PDF file's raw bytes."""
+    import pdfplumber
+    from io import BytesIO
+
+    with pdfplumber.open(BytesIO(pdf_bytes)) as pdf:
+        pages = [page.extract_text() for page in pdf.pages]
+    return "\n".join(p for p in pages if p).strip()
