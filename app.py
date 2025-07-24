@@ -27,7 +27,6 @@ from delete_user_utils import delete_account_from_firebase, delete_all_user_chec
 from brand_agents import QuickStatementAgent, PlanBuilderAgent
 from brand_builder_utils import parse_pdf  
 
-
 st.set_page_config(page_title="Daily Check-In App", layout="centered")
 st.title("🏁 Daily Check-In 🏁")
 
