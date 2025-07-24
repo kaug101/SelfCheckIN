@@ -1,6 +1,8 @@
 import pdfplumber, streamlit as st, textwrap, json
 from openai import OpenAI                        # already in requirements
-from agents.tools import tool
+#from agents.tools import tool
+from langchain_core.tools import tool
+
 from agents.memory import VectorStoreMemory
 from openai import OpenAI
 
