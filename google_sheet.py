@@ -76,3 +76,20 @@ def update_google_sheet(updated_df):
     except Exception as e:
         st.error(f"❌ Failed to update sheet: {e}")
         return False
+# google_sheet.py
+def get_brandbuilder_ws():
+    sheet = get_worksheet().spreadsheet       # reuse authorised client
+    try:
+        return sheet.worksheet("Brand Builder")
+    except gspread.WorksheetNotFound:
+        return sheet.add_worksheet(title="Brand Builder", rows=1, cols=4)
+
+def append_brand_plan(entry: dict):
+    """Append a {date,email,plan_json,embedding_json} row to Brand Builder sheet."""
+    ws   = get_brandbuilder_ws()
+    hdr  = ["date", "user", "plan", "embedding"]
+    if ws.row_count == 0 or ws.row_values(1) != hdr:
+        ws.update([hdr])                      # add header if first time
+    row = [entry.get(k, "") for k in hdr]
+    ws.append_row(row)
+    st.success("✅ Brand plan stored.")
