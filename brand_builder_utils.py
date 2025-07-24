@@ -1,5 +1,13 @@
 import pdfplumber, streamlit as st, textwrap, json
 from openai import OpenAI                        # already in requirements
+from agents.tools import tool
+from agents.memory import VectorStoreMemory
+from openai import OpenAI
+
+# re-use your helpers
+from checkin_utils import load_user_checkins, generate_embedding
+from google_sheet import get_brandbuilder_ws, append_brand_plan
+
 
 client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
 
@@ -123,3 +131,42 @@ def build_plan_from_pdf(pdf_text: str, user_email: str) -> dict:
         "embedding": json.dumps(emb)
     })
     return data
+
+
+@tool
+def load_last_checkins(user: str, k: int = 3) -> str:
+    "Return the k most recent check-in notes for user."
+    return "\n\n".join(load_user_checkins(user)[:k])
+
+@tool
+def fetch_brand_plan(user: str) -> str | None:
+    "Return latest stored brand-building plan JSON (or None)."
+    ws = get_brandbuilder_ws()
+    rows = [r for r in ws.get_all_records() if r["user"] == user]
+    return rows[-1]["plan"] if rows else None
+
+@tool
+def extract_pdf(file_bytes: bytes) -> str:
+    "Extract plaintext from an uploaded résumé / LinkedIn PDF."
+    import pdfplumber
+    from io import BytesIO
+    with pdfplumber.open(BytesIO(file_bytes)) as pdf:
+        pages = [p.extract_text() for p in pdf.pages]
+    return "\n".join(p for p in pages if p).strip()
+
+@tool
+def persist_plan(user: str, plan_json: str, embedding: list[float]) -> None:
+    "Append plan+embedding to Google Sheet."
+    append_brand_plan({
+        "date": datetime.utcnow().isoformat(" ", "minutes"),
+        "user": user,
+        "plan": plan_json,
+        "embedding": json.dumps(embedding)
+    })
+
+
+brand_memory = VectorStoreMemory(
+    name="brand_mem",
+    dimensions=1536,
+    distance_metric="cosine"
+)
