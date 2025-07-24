@@ -49,11 +49,14 @@ llm_o3   = ChatOpenAI(model="o3", temperature=0)
 
 quick_tools = [fetch_last_checkins, get_brand_plan]
 
+from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
+
 quick_prompt = ChatPromptTemplate.from_messages([
-    ("system", "You are a ghostwriter creating concise expert statements "
-               "based on the user's check-ins and brand themes. Use real news."),
-    ("user", "{input}")
+    ("system", "You are a ghostwriter creating concise expert statements..."),
+    ("user", "{input}"),
+    MessagesPlaceholder(variable_name="agent_scratchpad")
 ])
+
 
 quick_agent = create_openai_functions_agent(llm=llm_gpt4,
                                             tools=quick_tools,
@@ -68,12 +71,11 @@ QuickStatementAgent = AgentExecutor(agent=quick_agent,
 plan_tools = [parse_pdf, store_plan]
 
 plan_prompt = ChatPromptTemplate.from_messages([
-    ("system", "You are a brand strategist. Generate JSON with:\n"
-               "- 2 themes under 'expertise'\n"
-               "- 6 weekly tasks under 'plan_6w'\n"
-               "Output ONLY valid JSON."),
-    ("user", "{input}")
+    ("system", "You are a brand strategist..."),
+    ("user", "{input}"),
+    MessagesPlaceholder(variable_name="agent_scratchpad")
 ])
+
 
 plan_agent = create_openai_functions_agent(llm=llm_o3,
                                            tools=plan_tools,
