@@ -167,36 +167,7 @@ def persist_plan(user: str, plan_json: str, embedding: list[float]) -> None:
     })
 
 
-brand_memory = VectorStoreMemory(
-    name="brand_mem",
-    dimensions=1536,
-    distance_metric="cosine"
-)
 
-statement_agent = Agent(
-    name="Quick-Statement",
-    model="gpt-4o",
-    instructions=(
-        "You are a ghost-writer. Craft ONE ≤35-word statement that ties "
-        "a headline (<30 days) to the user’s domain.\n"
-        "If no brand-plan is present, raise the string NEED_BRAND_PLAN."
-    ),
-    tools=[load_last_checkins, fetch_brand_plan],
-    memory=brand_memory,
-    # Handoff path so the LLM *itself* can call the Plan agent if needed ↓
-    handoffs=[handoff(lambda: plan_agent)]
-)
-
-plan_agent = Agent(
-    name="6-Week-Plan",
-    model="o3",
-    instructions=(
-        "You are a personal-branding strategist.\n"
-        "Return JSON: {expertise:[…], plan_6w:[…]} (6 bullets)."
-    ),
-    tools=[extract_pdf, persist_plan],
-    memory=brand_memory
-)
 
 def run_brandbuilder(task: str, **kwargs):
     """task = 'statement' | 'plan'. kwargs carry Streamlit inputs."""
