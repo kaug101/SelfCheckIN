@@ -23,6 +23,8 @@ from checkin_utils import overlay_coaching_text
 from delete_user_utils import delete_account_from_firebase, delete_all_user_checkins
 
 from brand_builder_utils import extract_pdf_text, build_plan_from_pdf
+from brand_builder_utils import make_quick_statement
+
 
 st.set_page_config(page_title="Daily Check-In App", layout="centered")
 st.title("🏁 Daily Check-In 🏁")
@@ -138,7 +140,7 @@ elif mode == "🙋‍♂️ User Mode":
         
             if bb_mode == "⚡ Quick Expert Statement":
                 if st.button("Generate Statement"):
-                    from brand_builder_utils import make_quick_statement
+                    
                     with st.spinner("Crafting your hot-take…"):
                         stmt = make_quick_statement(user_email)
                     st.success("### Your Expert Statement")
