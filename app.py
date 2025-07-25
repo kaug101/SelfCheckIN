@@ -162,7 +162,7 @@ elif mode == "🙋‍♂️ User Mode":
                             if raw_output.startswith("json"):
                                 raw_output = raw_output[4:].strip()  # remove "json" label
 
-                        st.write("📦 Raw result:", raw_output)
+                        #st.write("📦 Raw result:", raw_output)
                         if not raw_output:
                             st.error("❌ Agent returned no output.")
                         else:
