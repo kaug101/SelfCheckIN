@@ -155,9 +155,9 @@ elif mode == "🙋‍♂️ User Mode":
                         pdf_text = extract_pdf_text_from_bytes(pdf_file.read())  # ✅ safe raw call
                         result = PlanBuilderAgent.invoke({"input": pdf_text})
                                   
-                        
-                        
+                                             
                         raw_output = result.get("output", None)
+                        st.write("📦 Raw result:", raw_output)
 
                         if not raw_output:
                             st.error("❌ Agent returned no output.")
