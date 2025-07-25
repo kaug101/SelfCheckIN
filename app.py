@@ -156,9 +156,13 @@ elif mode == "🙋‍♂️ User Mode":
                         result = PlanBuilderAgent.invoke({"input": pdf_text})
                                   
                                              
-                        raw_output = result.get("output", None)
-                        st.write("📦 Raw result:", raw_output)
+                        raw_output = result.get("output", "").strip()
+                        if raw_output.startswith("```"):
+                            raw_output = raw_output.strip("`").strip()
+                            if raw_output.startswith("json"):
+                                raw_output = raw_output[4:].strip()  # remove "json" label
 
+                        st.write("📦 Raw result:", raw_output)
                         if not raw_output:
                             st.error("❌ Agent returned no output.")
                         else:
