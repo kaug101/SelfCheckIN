@@ -81,6 +81,7 @@ elif mode == "🙋‍♂️ User Mode":
         user_email = st.session_state.get("user_email", "unknown@example.com")
         st.success(f"✅ Logged in as: {user_email}")
         #user_action = "🆕 New Check-In"
+        user_action = "🌟 Brand Builder"
 
         df = load_user_checkins(user_email)
         if df is not None and not df.empty:
