@@ -153,5 +153,16 @@ elif mode == "🙋‍♂️ User Mode":
                     with st.spinner("Crafting strategy…"):
                         pdf_text = extract_pdf_text_from_bytes(pdf_file.read())  # ✅ safe raw call
                         result = PlanBuilderAgent.invoke({"input": pdf_text})
-                        st.json(json.loads(result["output"]))
+                        raw = result.get("output", "").strip()
+
+                        if not raw:
+                            st.write("📦 Agent Output:", result.get("output", "(missing)"))
+                            st.error("❌ Agent returned no output. Check your résumé content or prompt.")
+                        else:
+                            try:
+                                st.json(json.loads(raw))
+                            except json.JSONDecodeError:
+                                st.error("⚠️ Output is not valid JSON:")
+                                st.code(raw)
+
 
