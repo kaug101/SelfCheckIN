@@ -153,16 +153,24 @@ elif mode == "🙋‍♂️ User Mode":
                     with st.spinner("Crafting strategy…"):
                         pdf_text = extract_pdf_text_from_bytes(pdf_file.read())  # ✅ safe raw call
                         result = PlanBuilderAgent.invoke({"input": pdf_text})
-                        raw = result.get("output", "").strip()
-
-                        if not raw:
+                        raw = result.get("output", "").strip()                    
+                        raw_output = result.get("output", "").strip()
+                        
+                        if not raw_output:
+                            st.error("❌ Agent returned no output. Check the input or try again.")
                             st.write("📦 Agent Output:", result.get("output", "(missing)"))
-                            st.error("❌ Agent returned no output. Check your résumé content or prompt.")
                         else:
                             try:
-                                st.json(json.loads(raw))
+                                parsed = json.loads(raw_output)
+                                st.success("✅ Brand Plan Generated")
+                                st.markdown("### 🎯 Core Expertise Themes")
+                                st.markdown(f"- **{parsed['expertise'][0]}**\n- **{parsed['expertise'][1]}**")
+                        
+                                st.markdown("### 🗺 6-Week Plan")
+                                for line in parsed["plan_6w"]:
+                                    st.markdown(f"- {line}")
                             except json.JSONDecodeError:
-                                st.error("⚠️ Output is not valid JSON:")
-                                st.code(raw)
+                                st.error("⚠️ Output was not valid JSON:")
+                                st.code(raw_output)
 
 
