@@ -80,14 +80,14 @@ elif mode == "🙋‍♂️ User Mode":
     else:
         user_email = st.session_state.get("user_email", "unknown@example.com")
         st.success(f"✅ Logged in as: {user_email}")
-        user_action = "🆕 New Check-In"
+        #user_action = "🆕 New Check-In"
 
         df = load_user_checkins(user_email)
         if df is not None and not df.empty:
             #user_action = st.radio("Choose Action", ["New Check-In", "View Past Insights", "Delete My Account"]) #st.selectbox("What would you like to do?", ("📈 View Past Insights", "🆕 New Check-In"))
              # Reflect on last coaching actions
             reflect_on_last_action(df)
-            user_action = st.radio("Choose Action", ["🆕 New Check-In", "🌟 Brand Builder", "📈 View Past Insights", "🗑 Delete My Account"])
+            user_action = st.radio("Choose Action", ["🌟 Brand Builder", "🆕 New Check-In", "📈 View Past Insights", "🗑 Delete My Account"])
 
 
         if user_action == "🗑 Delete My Account":
