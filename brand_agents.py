@@ -87,7 +87,7 @@ plan_prompt = ChatPromptTemplate.from_messages([
      "    \"Week 6: ...\"\n"
      "  ]\n"
      "}}\n\n"
-     "Only return valid JSON. Do not include any extra text or commentary."),
+     "Return ONLY valid JSON matching the format above. Do not include explanations or text before or after the JSON."),
     ("user", "{input}"),
     MessagesPlaceholder(variable_name="agent_scratchpad")
 ])
