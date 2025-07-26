@@ -25,7 +25,8 @@ from delete_user_utils import delete_account_from_firebase, delete_all_user_chec
 
 #from brand_builder_utils import extract_pdf_text, build_plan_from_pdf
 #from brand_builder_utils import make_quick_statement
-from brand_agents import QuickStatementAgent, PlanBuilderAgent
+from brand_agents import QuickStatementAgent, PlanBuilderAgent, get_user_context
+
 #from brand_builder_utils import parse_pdf  
 from brand_builder_utils import extract_pdf_text_from_bytes
 
@@ -148,7 +149,8 @@ elif mode == "🙋‍♂️ User Mode":
                 #result = QuickStatementAgent.invoke({"input": user_email})
                 #st.success(result["output"])
                 try:
-                    result = QuickStatementAgent.invoke({"input": user_email})
+                    user_context = get_user_context(user_email)
+                    result = QuickStatementAgent.invoke({"input": user_context})
                     st.success("🧠 Your Expert Statement")
                     st.markdown(result.get("output", "Not enough info to generate a brand statement."))
                 except Exception as e:
