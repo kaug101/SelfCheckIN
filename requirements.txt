@@ -11,3 +11,8 @@ cryptography>=41.0.0
 Pillow
 scikit-learn
 pdfplumber             # fast, zero-config PDF → text
+langchain>=0.1.20
+langchain-openai>=0.1.6
+tiktoken
+
+# openai-agents-python          # orchestration layer
