@@ -145,8 +145,16 @@ elif mode == "🙋‍♂️ User Mode":
             if bb_mode == "⚡ Quick Expert Statement":
                 if st.button("Generate Statement"):
                     with st.spinner("Generating expert insight…"):
-                        result = QuickStatementAgent.invoke({"input": user_email})
-                        st.success(result["output"])
+                        #result = QuickStatementAgent.invoke({"input": user_email})
+                        #st.success(result["output"])
+                        try:
+                            result = QuickStatementAgent.invoke({"input": user_email})
+                            st.success("🧠 Your Expert Statement")
+                            st.markdown(result.get("output", "No statement returned."))
+                        except Exception as e:
+                            st.error("❌ Failed to generate statement.")
+                            st.exception(e)
+
         
             else:
                 pdf_file = st.file_uploader("Upload résumé PDF", type=["pdf"])
