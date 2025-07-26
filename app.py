@@ -130,51 +130,53 @@ elif mode == "🙋‍♂️ User Mode":
                     st.code(traceback.format_exc(), language="python")
 
 
+                                
+                #if st.button("🌟 Try Brand Builder?"):
+       
+                from brand_agents import QuickStatementAgent, PlanBuilderAgent
+        
+                
+                st.subheader("🌟 Brand Builder")
+                with st.spinner("Generating brand positioning…"):
+                    try:
+                        user_context = get_user_context(user_email)
+                        result = QuickStatementAgent.invoke({"input": user_context})
+                        st.success("🧠 Your Expert Statement")
+                        st.markdown(result.get("output", "Not enough info to generate a brand statement."))
+                    except Exception as e:
+                        st.error("❌ Error generating a brand statement.")
+                        st.exception(e)
+    
+        
+                
+                    pdf_file = st.file_uploader("Upload résumé PDF to craft your personal strategy", type=["pdf"])
+                    if pdf_file:
+                        with st.spinner("Crafting strategy…"):
+                            pdf_text = extract_pdf_text_from_bytes(pdf_file.read())  # ✅ safe raw call
+                            result = PlanBuilderAgent.invoke({"input": pdf_text})                                  
+                                                 
+                            raw_output = result.get("output", "").strip()
+                            if raw_output.startswith("```"):
+                                raw_output = raw_output.strip("`").strip()
+                                if raw_output.startswith("json"):
+                                    raw_output = raw_output[4:].strip()  # remove "json" label
+    
+                            #st.write("📦 Raw result:", raw_output)
+                            if not raw_output:
+                                st.error("❌ Agent returned no output.")
+                            else:
+                                # If it's already a dict, skip json.loads
+                                parsed = raw_output if isinstance(raw_output, dict) else json.loads(raw_output)
+                            
+                                st.success("✅ Brand Building Plan Generated")
+                                st.markdown("### 🎯 Seek these core Expertise Themes to build your brand")
+                                st.markdown(f"- **{parsed['expertise'][0]}**\n- **{parsed['expertise'][1]}**")
+                            
+                                st.markdown("### 🗺 Here's a 6-Week Plan")
+                                for line in parsed["plan_6w"]:
+                                    st.markdown(f"- {line}")
+
                 if st.button("🚪 Sign Out"):
                     st.session_state.clear()
                     st.rerun()
-                
-                if st.button("🌟 Try Brand Builder?"):
-       
-                    from brand_agents import QuickStatementAgent, PlanBuilderAgent
-            
-                    
-                    st.subheader("🌟 Brand Builder")
-                    with st.spinner("Generating brand positioning…"):
-                        try:
-                            user_context = get_user_context(user_email)
-                            result = QuickStatementAgent.invoke({"input": user_context})
-                            st.success("🧠 Your Expert Statement")
-                            st.markdown(result.get("output", "Not enough info to generate a brand statement."))
-                        except Exception as e:
-                            st.error("❌ Error generating a brand statement.")
-                            st.exception(e)
-        
-            
-                    
-                        pdf_file = st.file_uploader("Upload résumé PDF to craft your personal strategy", type=["pdf"])
-                        if pdf_file:
-                            with st.spinner("Crafting strategy…"):
-                                pdf_text = extract_pdf_text_from_bytes(pdf_file.read())  # ✅ safe raw call
-                                result = PlanBuilderAgent.invoke({"input": pdf_text})                                  
-                                                     
-                                raw_output = result.get("output", "").strip()
-                                if raw_output.startswith("```"):
-                                    raw_output = raw_output.strip("`").strip()
-                                    if raw_output.startswith("json"):
-                                        raw_output = raw_output[4:].strip()  # remove "json" label
-        
-                                #st.write("📦 Raw result:", raw_output)
-                                if not raw_output:
-                                    st.error("❌ Agent returned no output.")
-                                else:
-                                    # If it's already a dict, skip json.loads
-                                    parsed = raw_output if isinstance(raw_output, dict) else json.loads(raw_output)
-                                
-                                    st.success("✅ Brand Building Plan Generated")
-                                    st.markdown("### 🎯 Seek these core Expertise Themes to build your brand")
-                                    st.markdown(f"- **{parsed['expertise'][0]}**\n- **{parsed['expertise'][1]}**")
-                                
-                                    st.markdown("### 🗺 Here's a 6-Week Plan")
-                                    for line in parsed["plan_6w"]:
-                                        st.markdown(f"- {line}")
+
