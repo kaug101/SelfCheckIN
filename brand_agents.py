@@ -114,12 +114,15 @@ PlanBuilderAgent = AgentExecutor(agent=plan_agent,
                                  tools=plan_tools,
                                  verbose=True)
 
-def get_user_context(user_email: str) -> str:
-    """Returns combined context from past check-ins and brand plan (CV)."""
+from checkin_utils import build_past_context
+from google_sheet import get_brandbuilder_ws
+import json
 
-    # --- Load recent check-ins
-    checkins = load_user_checkins(user_email)
-    checkin_context = "\n".join(f"- {c}" for c in checkins[-3:]) if checkins else "None found."
+def get_user_context(user_email: str) -> str:
+    """Combines recent check-in context and stored CV-based brand plan."""
+
+    # --- Use existing check-in formatter
+    checkin_context = build_past_context(user_email, max_checkins=3)
 
     # --- Load most recent brand plan (CV-based)
     ws = get_brandbuilder_ws()
@@ -133,11 +136,12 @@ def get_user_context(user_email: str) -> str:
         except json.JSONDecodeError:
             cv_context = latest_plan  # fallback to raw string if parsing fails
     else:
-        cv_context = "None found."
+        cv_context = "No brand plan found."
 
     return (
-        "Check-Ins:\n"
+        "Check-In History:\n"
         f"{checkin_context}\n\n"
         "CV Summary / Brand Plan:\n"
         f"{cv_context}"
     )
+
