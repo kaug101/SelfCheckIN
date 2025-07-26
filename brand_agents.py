@@ -113,3 +113,31 @@ plan_agent = create_openai_functions_agent(llm=llm_plan,
 PlanBuilderAgent = AgentExecutor(agent=plan_agent,
                                  tools=plan_tools,
                                  verbose=True)
+
+def get_user_context(user_email: str) -> str:
+    """Returns combined context from past check-ins and brand plan (CV)."""
+
+    # --- Load recent check-ins
+    checkins = load_user_checkins(user_email)
+    checkin_context = "\n".join(f"- {c}" for c in checkins[-3:]) if checkins else "None found."
+
+    # --- Load most recent brand plan (CV-based)
+    ws = get_brandbuilder_ws()
+    rows = [r for r in ws.get_all_records() if r["user"] == user_email]
+    if rows:
+        latest_plan = rows[-1].get("plan", "")
+        try:
+            plan_data = json.loads(latest_plan)
+            cv_context = f"Expertise: {', '.join(plan_data.get('expertise', []))}\n"
+            cv_context += "Plan Highlights:\n" + "\n".join(f"- {line}" for line in plan_data.get("plan_6w", []))
+        except json.JSONDecodeError:
+            cv_context = latest_plan  # fallback to raw string if parsing fails
+    else:
+        cv_context = "None found."
+
+    return (
+        "Check-Ins:\n"
+        f"{checkin_context}\n\n"
+        "CV Summary / Brand Plan:\n"
+        f"{cv_context}"
+    )
