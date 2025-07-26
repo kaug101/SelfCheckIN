@@ -140,29 +140,28 @@ elif mode == "🙋‍♂️ User Mode":
 
         if user_action == "🌟 Brand Builder":
             st.subheader("🌟 Brand Builder")
-            bb_mode = st.radio("Choose Brand-Tool", ["⚡ Quick Expert Statement", "🗺 6-Week Brand Plan"])
+            #bb_mode = st.radio("Choose Brand-Tool", ["⚡ Quick Expert Statement", "🗺 6-Week Brand Plan"])
         
-            if bb_mode == "⚡ Quick Expert Statement":
-                if st.button("Generate Statement"):
-                    with st.spinner("Generating expert insight…"):
-                        #result = QuickStatementAgent.invoke({"input": user_email})
-                        #st.success(result["output"])
-                        try:
-                            result = QuickStatementAgent.invoke({"input": user_email})
-                            st.success("🧠 Your Expert Statement")
-                            st.markdown(result.get("output", "No statement returned."))
-                        except Exception as e:
-                            st.error("❌ Failed to generate statement.")
-                            st.exception(e)
+            #if bb_mode == "⚡ Quick Expert Statement":
+                #if st.button("Generate Statement"):
+            with st.spinner("Generating brand positioning…"):
+                #result = QuickStatementAgent.invoke({"input": user_email})
+                #st.success(result["output"])
+                try:
+                    result = QuickStatementAgent.invoke({"input": user_email})
+                    st.success("🧠 Your Expert Statement")
+                    st.markdown(result.get("output", "Not enough info to generate a brand statement."))
+                except Exception as e:
+                    st.error("❌ Error generating a brand statement.")
+                    st.exception(e)
 
         
-            else:
-                pdf_file = st.file_uploader("Upload résumé PDF", type=["pdf"])
+            
+                pdf_file = st.file_uploader("Upload résumé PDF to craft your personal strategy", type=["pdf"])
                 if pdf_file:
                     with st.spinner("Crafting strategy…"):
                         pdf_text = extract_pdf_text_from_bytes(pdf_file.read())  # ✅ safe raw call
-                        result = PlanBuilderAgent.invoke({"input": pdf_text})
-                                  
+                        result = PlanBuilderAgent.invoke({"input": pdf_text})                                  
                                              
                         raw_output = result.get("output", "").strip()
                         if raw_output.startswith("```"):
@@ -177,11 +176,11 @@ elif mode == "🙋‍♂️ User Mode":
                             # If it's already a dict, skip json.loads
                             parsed = raw_output if isinstance(raw_output, dict) else json.loads(raw_output)
                         
-                            st.success("✅ Brand Plan Generated")
-                            st.markdown("### 🎯 Core Expertise Themes")
+                            st.success("✅ Brand Building Plan Generated")
+                            st.markdown("### 🎯 Seek these core Expertise Themes to build your brand")
                             st.markdown(f"- **{parsed['expertise'][0]}**\n- **{parsed['expertise'][1]}**")
                         
-                            st.markdown("### 🗺 6-Week Plan")
+                            st.markdown("### 🗺 Here's a 6-Week Plan")
                             for line in parsed["plan_6w"]:
                                 st.markdown(f"- {line}")
                         
