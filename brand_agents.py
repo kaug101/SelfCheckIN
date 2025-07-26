@@ -21,7 +21,7 @@ def get_brand_plan(user_email: str) -> str:
     """Return the most recent brand-building plan (JSON string) or 'None'."""
     ws = get_brandbuilder_ws()
     rows = [r for r in ws.get_all_records() if r["user"] == user_email]
-    return rows[-1]["plan"] if rows else "None"
+    return rows[-1]["plan"] if rows else "No plan found"
 
 @tool
 def parse_pdf(pdf_bytes: bytes) -> str:
