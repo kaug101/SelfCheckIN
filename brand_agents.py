@@ -53,10 +53,23 @@ quick_tools = [fetch_last_checkins, get_brand_plan]
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 
 quick_prompt = ChatPromptTemplate.from_messages([
-    ("system", "You are a ghostwriter creating concise expert statements..."),
-    ("user", "{input}"),
+    ("system",
+     "You are a professional brand positioning expert who helps individuals articulate "
+     "their unique value and insight in a single, sharp expert statement.\n\n"
+     "Use the user's background, past check-ins, and CV/resume (if available) to generate "
+     "a positioning sentence that:\n"
+     "- Clearly defines the user’s domain of expertise\n"
+     "- Ties into a relevant trend or challenge in that domain\n"
+     "- Is ≤35 words\n"
+     "- Sounds bold, insightful, and original\n\n"
+     "Return ONLY the final statement – no commentary, markdown, or formatting."),
+    ("user",
+     "USER CONTEXT:\n"
+     "{input}\n\n"
+     "Generate the positioning statement."),
     MessagesPlaceholder(variable_name="agent_scratchpad")
 ])
+
 
 
 quick_agent = create_openai_functions_agent(llm=llm_gpt4,
