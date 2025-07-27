@@ -231,13 +231,22 @@ def ask_questions(key_prefix=""):
             slug = hashlib.md5(q_text.encode()).hexdigest()[:6]
             key  = f"{section}_{idx}_{slug}"
 
+            img_key = f"{key}_image"
+            if img_key not in st.session_state:
+                with st.spinner("🎨 Generating image..."):
+                    st.session_state[img_key] = generate_coaching_image_gemini(q_text)
+    
+            image_url = st.session_state.get(img_key, "")
+            if image_url:
+                st.image(image_url, use_column_width="auto", caption="Visual prompt")
+
             ans = st.text_area(
                 label=q_text,
                 key=f"{key_prefix}{key}",
                 placeholder=help_txt,
                 help=help_txt
             )
-            st.caption(help_txt)
+            #st.caption(help_txt)
             answers[section].append(ans)
 
     return answers
