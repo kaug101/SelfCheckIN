@@ -1,8 +1,10 @@
 import streamlit as st
 import json
-from auth import ( 
+from auth import (
     email_step_authentication,
-    send_password_reset_email
+    send_password_reset_email,
+    auto_login_from_cookies,
+    clear_auth_cookies
 )
 from checkin_utils import (
     ask_questions,
@@ -58,6 +60,7 @@ if mode == "🎯 Demo Mode":
         st.warning("No demo data found for this persona.")
 
 elif mode == "🙋‍♂️ User Mode":
+    auto_login_from_cookies()
     if "authenticated" not in st.session_state or not st.session_state["authenticated"]:
         user_email, user_exists, authenticated = email_step_authentication()
         login_attempted = st.session_state.get("login_attempted", False)
@@ -101,11 +104,14 @@ elif mode == "🙋‍♂️ User Mode":
                     st.success("✅ Your account and check-ins were deleted.")
                 else:
                     st.warning("⚠️ Some parts of deletion may have failed.")
-                st.stop()
+                clear_auth_cookies()
+                st.session_state.clear()
+                st.rerun()
 
         if user_action == "📈 View Past Insights":
             show_insights(df, key_prefix=user_email)
             if st.button("🚪 Sign Out"):
+                clear_auth_cookies()
                 st.session_state.clear()
                 st.rerun()
 
@@ -177,6 +183,7 @@ elif mode == "🙋‍♂️ User Mode":
                                     st.markdown(f"- {line}")
 
                 if st.button("🚪 Sign Out"):
+                    clear_auth_cookies()
                     st.session_state.clear()
                     st.rerun()
 
