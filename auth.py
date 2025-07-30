@@ -1,10 +1,53 @@
 import streamlit as st
 import requests
+import datetime
 
 FIREBASE_API_KEY = st.secrets["FIREBASE_API_KEY"]
 FIREBASE_REST_SIGNIN_URL = f"https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key={FIREBASE_API_KEY}"
 FIREBASE_REST_SIGNUP_URL = f"https://identitytoolkit.googleapis.com/v1/accounts:signUp?key={FIREBASE_API_KEY}"
 FIREBASE_REST_RESET_URL = f"https://identitytoolkit.googleapis.com/v1/accounts:sendOobCode?key={FIREBASE_API_KEY}"
+
+# ---------------------------------------------------------------------------
+# Cookie helpers
+# ---------------------------------------------------------------------------
+
+def store_auth_cookies(email: str, password: str, id_token: str) -> None:
+    """Persist auth credentials in browser cookies for ~30 days."""
+    expires_at = datetime.datetime.utcnow() + datetime.timedelta(days=30)
+    # Consider encrypting password before storing if needed
+    st.experimental_set_cookie("user_email", email, expires_at=expires_at)
+    st.experimental_set_cookie("user_password", password, expires_at=expires_at)
+    st.experimental_set_cookie("id_token", id_token, expires_at=expires_at)
+
+
+def clear_auth_cookies() -> None:
+    """Remove stored auth cookies."""
+    st.experimental_set_cookie("user_email", "", expires_at=0)
+    st.experimental_set_cookie("user_password", "", expires_at=0)
+    st.experimental_set_cookie("id_token", "", expires_at=0)
+
+
+def auto_login_from_cookies() -> None:
+    """Attempt automatic login if credentials cookies are present."""
+    if st.session_state.get("authenticated"):
+        return
+
+    email = st.experimental_get_cookie("user_email")
+    password = st.experimental_get_cookie("user_password")
+
+    if email and password:
+        try:
+            payload = {"email": email, "password": password, "returnSecureToken": True}
+            res = requests.post(FIREBASE_REST_SIGNIN_URL, json=payload)
+            res.raise_for_status()
+            res_data = res.json()
+            st.session_state["user_email"] = email
+            st.session_state["user_password"] = password
+            st.session_state["id_token"] = res_data.get("idToken")
+            st.session_state["authenticated"] = True
+        except Exception:
+            clear_auth_cookies()
+
 
 def send_password_reset_email(email):
     #st.info("🔧 Reset password function was entered.")
@@ -58,6 +101,7 @@ def email_step_authentication():
                     st.session_state["user_email"] = email
                     st.session_state["user_password"] = password
                     st.session_state["id_token"] = res_data.get("idToken")
+                    store_auth_cookies(email, password, res_data.get("idToken"))
                 except Exception as e:
                     st.error(f"❌ Login failed")
                     st.session_state["login_failed"] = True
@@ -85,6 +129,7 @@ def email_step_authentication():
                         st.session_state["user_email"] = email
                         st.session_state["user_password"] = pw1
                         st.session_state["id_token"] = res_data.get("idToken")
+                        store_auth_cookies(email, pw1, res_data.get("idToken"))
                     except Exception as e:
                         st.error(f"❌ Signup failed: {e}")
                 else:
