@@ -39,7 +39,7 @@ mode = "🙋‍♂️ User Mode"
 from google_sheet import get_all_checkins_cached
 
 # warm the cache immediately
-get_all_checkins_cached()
+#get_all_checkins_cached()
 
 if mode == "🎯 Demo Mode":
     st.subheader("Demo Mode: View Individual Personas")
