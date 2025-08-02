@@ -1,23 +1,28 @@
-# Use an official Python runtime as a parent image
+# Start from slim Python image
 FROM python:3.11-slim
 
-# Set environment variables
-ENV PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONUNBUFFERED=1
+# Prevent Python from writing .pyc files
+ENV PYTHONDONTWRITEBYTECODE 1
+ENV PYTHONUNBUFFERED 1
 
-# Create a working directory
+# Set working directory inside container
 WORKDIR /app
 
-# Install dependencies
-COPY requirements.txt .
-RUN pip install --upgrade pip \
- && pip install --no-cache-dir -r requirements.txt
+# Install system dependencies (optional: add more as needed)
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    && rm -rf /var/lib/apt/lists/*
 
-# Copy the rest of the app
+# Install Python dependencies separately to enable caching
+COPY requirements.txt .
+RUN pip install --upgrade pip && \
+    pip install --no-cache-dir -r requirements.txt
+
+# Now copy the rest of your application (after dependencies installed)
 COPY . .
 
-# Expose the default Flask port
+# Expose port 8080 for Cloud Run
 EXPOSE 8080
 
-# Run the Flask app (you can customize the port here)
-CMD ["python", "main.py"]
+# Launch app via gunicorn (faster than Flask dev server)
+CMD ["gunicorn", "-b", "0.0.0.0:8080", "main:app"]
