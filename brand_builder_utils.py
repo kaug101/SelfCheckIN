@@ -11,7 +11,8 @@ from checkin_utils import load_user_checkins, generate_embedding
 from google_sheet import get_brandbuilder_ws, append_brand_plan
 
 
-client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
+#client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 def extract_pdf_text(uploaded_pdf) -> str:
     """Return plain-text from a one-file `st.file_uploader` object."""
@@ -63,7 +64,8 @@ from openai import OpenAI
 from google_sheet import append_brand_plan, get_brandbuilder_ws
 from checkin_utils import load_user_checkins, generate_embedding, build_past_context
 
-client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
+#client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 # ---------- QUICK STATEMENT --------------------------------------------------
 def make_quick_statement(user_email: str) -> str:
