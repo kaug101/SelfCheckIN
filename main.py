@@ -14,12 +14,14 @@ app.secret_key = os.getenv("FLASK_SECRET_KEY", "dev_secret")
 
 @app.route("/")
 def home():
+    print(">>> Home route hit:", request.method, request.path)
     if "user_email" in session:
         return redirect(url_for("dashboard"))
     return render_template("login.html")
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
+    print(">>> Login route hit:", request.method, request.path)
     if request.method == "POST":
         email = request.form["email"]
         password = request.form["password"]
@@ -34,6 +36,7 @@ def login():
 
 @app.route("/signup", methods=["GET", "POST"])
 def signup():
+    print(">>> Signup route hit:", request.method, request.path)
     if request.method == "POST":
         email = request.form["email"]
         password = request.form["password"]
@@ -46,14 +49,16 @@ def signup():
             return render_template("signup.html", error="Signup failed.")
     return render_template("signup.html")
 
-@app.route("/dashboard")
+@app.route("/dashboard", methods=["GET", "POST"])
 def dashboard():
+    print(">>> Dashboard route hit:", request.method)
     if "user_email" not in session:
         return redirect(url_for("login"))
     return render_template("dashboard.html", user=session["user_email"])  
 
 @app.route("/checkin", methods=["GET", "POST"])
 def checkin():
+    print(">>> Checkin route hit:", request.method)
     if "user_email" not in session:
         return redirect(url_for("login"))
 
@@ -68,6 +73,7 @@ def checkin():
 
 @app.route("/logout")
 def logout():
+    print(">>> Logout route hit:", request.method)
     session.clear()
     return redirect(url_for("home"))
 
