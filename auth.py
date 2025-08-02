@@ -1,7 +1,8 @@
 import streamlit as st
 import requests
+import os 
 
-FIREBASE_API_KEY = st.secrets["FIREBASE_API_KEY"]
+FIREBASE_API_KEY = os.getenv("FIREBASE_API_KEY")
 FIREBASE_REST_SIGNIN_URL = f"https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key={FIREBASE_API_KEY}"
 FIREBASE_REST_SIGNUP_URL = f"https://identitytoolkit.googleapis.com/v1/accounts:signUp?key={FIREBASE_API_KEY}"
 FIREBASE_REST_RESET_URL = f"https://identitytoolkit.googleapis.com/v1/accounts:sendOobCode?key={FIREBASE_API_KEY}"
