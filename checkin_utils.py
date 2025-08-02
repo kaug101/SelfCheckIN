@@ -16,6 +16,7 @@ from sklearn.metrics.pairwise import cosine_similarity
 from PIL import Image, ImageDraw, ImageFont
 import requests
 from io import BytesIO
+from flask import session
 
 import random
 
@@ -43,9 +44,8 @@ def fetch_dynamic_qs_openai(user_email: str) -> dict:
     Return a dict with exactly 5 categories → 2 × {"q","help"} each.
     Falls back to the static pool (with canvas_help) if anything goes wrong.
     """
-    if "dynamic_qs" in st.session_state:           # already fetched this run
-        return st.session_state["dynamic_qs"]
-
+    if "dynamic_qs" in session:
+        return session["dynamic_qs"]
     # ---- build past-context block (same as before) ---------------------------
     past_ctx = build_past_context(user_email)
 
@@ -83,7 +83,9 @@ CATEGORIES (keep names & order):
             for item in data[cat]:
                 assert isinstance(item, dict) and "q" in item and "help" in item
 
-        st.session_state["dynamic_qs"] = data
+        
+        session["dynamic_qs"] = data
+
         return data
 
     except Exception as e:
