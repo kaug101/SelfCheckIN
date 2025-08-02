@@ -1,4 +1,5 @@
 import openai
+import os
 import streamlit as st
 import matplotlib.pyplot as plt
 import time
@@ -67,7 +68,8 @@ CATEGORIES (keep names & order):
 """
 
     try:
-        client  = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
+        #client  = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
+        client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
         resp    = client.chat.completions.create(
             model="o3",                      # o3 ignores temperature → don’t send it
             messages=[{"role":"system","content":system},
@@ -280,7 +282,8 @@ The image should:
 
 
 def generate_openai_feedback(canvas_answers: dict) -> tuple[int, str, int]:
-    client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
+    #client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
+    client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
     # Prepare current embedding
     current_text = " ".join(ans for section in canvas_answers.values() for ans in section)
@@ -373,7 +376,8 @@ Framework: <1-line>
 
 def generate_image_from_prompt(prompt_text: str) -> str:
     try:
-        client = openai.OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
+        #client = openai.OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
+        client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
         response = client.images.generate(
             model="dall-e-3",
             prompt=prompt_text,
@@ -532,7 +536,8 @@ def show_demo_coaching(selected_email):
 
 
 def generate_embedding(text: str) -> list[float]:
-    client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
+    #client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
+    client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
     response = client.embeddings.create(
         input=text,
         model="text-embedding-3-small"
