@@ -63,9 +63,11 @@ def get_all_checkins():
 
 def update_google_sheet(updated_df):
     try:
-        encoded_credentials = st.secrets["GCP"]["service_account_base64"]
-        decoded = base64.b64decode(encoded_credentials).decode("utf-8")
-        credentials_dict = json.loads(decoded)
+        #encoded_credentials = st.secrets["GCP"]["service_account_base64"]
+        #decoded = base64.b64decode(encoded_credentials).decode("utf-8")
+        #credentials_dict = json.loads(decoded)
+        encoded_credentials = os.environ.get("GCP_SERVICE_ACCOUNT_BASE64")
+        credentials_dict = json.loads(base64.b64decode(encoded_credentials).decode("utf-8"))
         
         scope = [
             "https://www.googleapis.com/auth/spreadsheets",
