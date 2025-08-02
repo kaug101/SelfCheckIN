@@ -17,5 +17,5 @@ steps:
       ]
 
 options:
-  machineType: 'E2_SMALL'
   logging: CLOUD_LOGGING_ONLY
+
