@@ -1,13 +1,14 @@
 options:
   logging: CLOUD_LOGGING_ONLY
   machineType: E2_SMALL
-  dynamic_substitutions: true
 
 steps:
   - name: 'gcr.io/cloud-builders/docker'
-    args: ['build', '-t', 'gcr.io/$PROJECT_ID/selfcheckin', '--cache-from', 'gcr.io/$PROJECT_ID/selfcheckin', '.']
+    args: ['build', '-t', 'gcr.io/$PROJECT_ID/selfcheckin', '.']
+
   - name: 'gcr.io/cloud-builders/docker'
     args: ['push', 'gcr.io/$PROJECT_ID/selfcheckin']
+
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
     entrypoint: gcloud
     args:
