@@ -220,6 +220,8 @@ def ask_questions(key_prefix=""):
     t1 = time.time()
 
     elapsed = int(t1 - t0)
+    print(">>> Generated question set:", question_set)
+
     
     timer_placeholder.markdown(f"✅ Generated personalized questions for your self-checkin in {elapsed} seconds")
 
