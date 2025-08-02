@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head><title>Check-In</title></head>
+<body>
+  <h2>Daily Check-In</h2>
+  <form method="POST">
+    <input type="hidden" name="answers" id="answers-input">
+    <div id="question-block">
+      {% for section, qas in questions.items() %}
+        <h3>{{ section }}</h3>
+        {% for qa in qas %}
+          <label>{{ qa.q }}</label><br>
+          <textarea rows="2" cols="60" placeholder="{{ qa.help }}"></textarea><br>
+        {% endfor %}
+      {% endfor %}
+    </div>
+    <button type="submit" onclick="saveAnswers()">Submit</button>
+  </form>
+  <script>
+    function saveAnswers() {
+      const textareas = document.querySelectorAll("textarea")
+      const blocks = [...document.querySelectorAll("#question-block > h3")]
+      let result = {}
+      let i = 0
+      for (const h3 of blocks) {
+        const section = h3.textContent
+        result[section] = [
+          textareas[i++].value,
+          textareas[i++].value
+        ]
+      }
+      document.getElementById("answers-input").value = JSON.stringify(result)
+    }
+  </script>
+</body>
+</html>
