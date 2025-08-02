@@ -4,6 +4,9 @@ import base64
 import json
 import streamlit as st
 import pandas as pd
+import os
+import base64, json
+
 
 GOOGLE_SHEET_ID = "1-_qYgfLjxnxfwo-sNkkM6xEDWwEAmtizUP0n9aUQS40"
 
@@ -14,9 +17,13 @@ def get_all_checkins_cached() -> pd.DataFrame | None:
     return get_all_checkins()    # existing function
 
 def get_worksheet():
-    encoded_credentials = st.secrets["GCP"]["service_account_base64"]
-    decoded = base64.b64decode(encoded_credentials).decode("utf-8")
-    credentials_dict = json.loads(decoded)
+    #encoded_credentials = st.secrets["GCP"]["service_account_base64"]
+    #decoded = base64.b64decode(encoded_credentials).decode("utf-8")
+    #credentials_dict = json.loads(decoded)
+
+    encoded_credentials = os.environ.get("GCP_SERVICE_ACCOUNT_BASE64")
+    credentials_dict = json.loads(base64.b64decode(encoded_credentials).decode("utf-8"))
+ 
 
     scope = [
         "https://www.googleapis.com/auth/spreadsheets",
